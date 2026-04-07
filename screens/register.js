@@ -4,41 +4,41 @@ import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'reac
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../services/firebase';
 import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
 
 export default function RegisterScreen({navigation}) {
   const [username,setUsername] = useState('');
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const db = getFirestore();
-
+  const [mensaje,setMensaje] = useState('');
 
 /*  Funcion para regsitrar un nuevo usuario */
 const Registrar = async () => {
-
+  setMensaje("");
   // Username
   if (username.length < 3) {
-    alert("Username must have at least 3 characters");
+    setMensaje("Username must have at least 3 characters");
     return;
   }
 
   // Email regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    alert("Invalid email format");
+    setMensaje("Invalid email format");
     return;
   }
 
   // Password regex
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
   if (!passwordRegex.test(password)) {
-    alert("Password must be at least 6 characters and include letters and numbers");
+    setMensaje("Password must be at least 6 characters and include letters and numbers");
     return;
   }
 
   // Confirm password
   if (password !== confirmPassword) {
-    alert("Passwords do not match");
+    setMensaje("Passwords do not match");
     return;
   }
 
@@ -63,7 +63,7 @@ const Registrar = async () => {
 
   } catch (error) {
     if (error.code === "auth/email-already-in-use") {
-      alert("Email already in use");
+      setMensaje("Email already in use");
     } else {
       console.log(error.message);
     }
@@ -81,6 +81,11 @@ const Registrar = async () => {
         <View style={styles.container12}>   
           <Text style={styles.title}>Create an Account</Text>
         </View>
+      </View>
+
+      {/* Mensaje de confirmación */}
+      <View style={styles.messageContainer}>
+        <Text style={{color:'#e62424',fontSize:14,textAlign:"center"}}>{mensaje}</Text>
       </View>
 
       {/* User */}
@@ -169,10 +174,17 @@ const styles = StyleSheet.create({
   container1:{
     height:240,
     width:"90%",
-    marginTop:100,
+    marginTop:70,
   },
   container11:{
     height:"70%",
+  },
+  messageContainer:{
+    width:"80%",
+    marginTop:-55,
+    marginBottom:20,
+    alignItems:"center",
+    justifyContent:"center",
   },
   container12:{
     height:"30%",

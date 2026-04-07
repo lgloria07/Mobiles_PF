@@ -8,12 +8,13 @@ import { auth } from '../services/firebase';
 export default function LoginScreen({navigation}) {
 const [email,setEmail] = useState('');
 const [password,setPassword] = useState('');
+const [mensaje,setMensaje] = useState('');
 
 /*  Funcion para iniciar sesión */
 const Ingresar = async () => {
-
+  setMensaje("");
   if (!email || !password) {
-    alert("Please fill all fields");
+    setMensaje("Please fill all fields");
     return;
   }
 
@@ -30,11 +31,12 @@ const Ingresar = async () => {
 
   } catch (error) {
     if (error.code === "auth/user-not-found") {
-      alert("User not found");
+      setMensaje("User not found");
     } else if (error.code === "auth/wrong-password") {
-      alert("Incorrect password");
+      setMensaje("Incorrect password");
+    } else if (error.code === "auth/invalid-email"){
     } else {
-      console.log(error.message);
+      setMensaje("Incorrect mail/password");
     }
   }
 };
@@ -50,6 +52,11 @@ const Ingresar = async () => {
         <View style={styles.container12}>
           <Text style={styles.title}>Green Monster</Text>
         </View>
+      </View>
+
+      {/* Mensaje de confirmación */}
+      <View style={styles.messageContainer}>
+        <Text style={{color:'#e62424',fontSize:14,textAlign:"center"}}>{mensaje}</Text>
       </View>
 
       {/* User */}
@@ -129,6 +136,13 @@ const styles = StyleSheet.create({
     justifyContent:'flex-start',
     alignItems:'center',
     marginTop:-30,
+  },
+  messageContainer:{
+    width:"80%",
+    marginTop:-55,
+    marginBottom:20,
+    alignItems:"center",
+    justifyContent:"center",
   },
   title:{
     color:'#22C55E',
