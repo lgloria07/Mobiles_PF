@@ -1,19 +1,75 @@
 import {useState} from 'react';
 import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
+/*  Conexion con firebase */
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 
-
-
-export default function LoginScreen({navigation}) {
-  const [user,setUser] = useState('');
+export default function RegisterScreen({navigation}) {
+  const [username,setUsername] = useState('');
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const db = getFirestore();
 
-  const Ingresar = () =>{
-    console.log(user)
-    console.log(email)
-    console.log(password)
-    navigation.navigate('login')
+
+/*  Funcion para regsitrar un nuevo usuario */
+const Registrar = async () => {
+
+  // Username
+  if (username.length < 3) {
+    alert("Username must have at least 3 characters");
+    return;
   }
+
+  // Email regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    alert("Invalid email format");
+    return;
+  }
+
+  // Password regex
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+  if (!passwordRegex.test(password)) {
+    alert("Password must be at least 6 characters and include letters and numbers");
+    return;
+  }
+
+  // Confirm password
+  if (password !== confirmPassword) {
+    alert("Passwords do not match");
+    return;
+  }
+
+  try {
+    const userCredential = await createUserWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    const userAuth = userCredential.user;
+
+    await setDoc(doc(db, "users", userAuth.uid), {
+      username: username,
+      email: email,
+      createdAt: new Date()
+    });
+
+    console.log("Usuario creado:", userAuth);
+
+    navigation.navigate('login');
+
+  } catch (error) {
+    if (error.code === "auth/email-already-in-use") {
+      alert("Email already in use");
+    } else {
+      console.log(error.message);
+    }
+}
+};
+
   return (  
     <View style={styles.container}>
 
@@ -35,10 +91,10 @@ export default function LoginScreen({navigation}) {
         <View style={styles.container22}>
           <TextInput 
           style={styles.inputMail} 
-          placeholder="example@gmail.com" 
+          placeholder="username" 
           placeholderTextColor="#a4abb9"
-          value={user} 
-          onChangeText={setUser}>
+          value={username} 
+          onChangeText={setUsername}>
           </TextInput>
         </View>
       </View>
@@ -87,15 +143,15 @@ export default function LoginScreen({navigation}) {
             style={styles.inputMail} 
             placeholder="................" 
             placeholderTextColor="#a4abb9"
-            value={password} 
-            onChangeText={setPassword}
+            value={confirmPassword} 
+            onChangeText={setConfirmPassword}
             secureTextEntry={true}>
           </TextInput>
         </View>
       </View>
 
       {/* Boton Registrarse */}
-      <TouchableOpacity onPress={Ingresar} style={styles.ingresar}>
+      <TouchableOpacity onPress={Registrar} style={styles.ingresar}>
         <Text style={{color:'white',fontSize:17,fontWeight:'bold'}}>Sign Up</Text>
       </TouchableOpacity>
     </View>

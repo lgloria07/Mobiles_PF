@@ -1,16 +1,44 @@
 import {useState} from 'react';
 import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
-
+/*  Conexion con firebase */
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../services/firebase';
 
 
 export default function LoginScreen({navigation}) {
-  const [user,setUser] = useState('');
-  const [password,setPassword] = useState('');
+const [email,setEmail] = useState('');
+const [password,setPassword] = useState('');
 
-  const Ingresar = () =>{
-    console.log(user)
-    console.log(password)
+/*  Funcion para iniciar sesión */
+const Ingresar = async () => {
+
+  if (!email || !password) {
+    alert("Please fill all fields");
+    return;
   }
+
+  try {
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+
+    console.log("Logeado:", userCredential.user);
+
+    navigation.navigate('register');
+
+  } catch (error) {
+    if (error.code === "auth/user-not-found") {
+      alert("User not found");
+    } else if (error.code === "auth/wrong-password") {
+      alert("Incorrect password");
+    } else {
+      console.log(error.message);
+    }
+  }
+};
+
   return (  
     <View style={styles.container}>
 
@@ -27,15 +55,15 @@ export default function LoginScreen({navigation}) {
       {/* User */}
       <View style={styles.container2}>
         <View style={styles.container21}>
-          <Text style={styles.subtitulo}>User</Text>
+          <Text style={styles.subtitulo}>Email</Text>
         </View>
         <View style={styles.container22}>
           <TextInput 
           style={styles.inputUser} 
           placeholder="example@gmail.com" 
           placeholderTextColor="#a4abb9"
-          value={user} 
-          onChangeText={setUser}>
+          value={email} 
+          onChangeText={setEmail}>
           </TextInput>
         </View>
       </View>
