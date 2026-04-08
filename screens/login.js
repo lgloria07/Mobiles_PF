@@ -25,9 +25,7 @@ const Ingresar = async () => {
       password
     );
 
-    console.log("Logeado:", userCredential.user);
-
-    navigation.navigate('register');
+    navigation.navigate('party');
 
   } catch (error) {
     if (error.code === "auth/user-not-found") {

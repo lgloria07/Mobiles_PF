@@ -57,8 +57,6 @@ const Registrar = async () => {
       createdAt: new Date()
     });
 
-    console.log("Usuario creado:", userAuth);
-
     navigation.navigate('login');
 
   } catch (error) {
