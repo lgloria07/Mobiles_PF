@@ -26,17 +26,23 @@ const Ingresar = async () => {
     );
 
     navigation.navigate('party');
-
-  } catch (error) {
-    if (error.code === "auth/user-not-found") {
-      setMensaje("User not found");
-    } else if (error.code === "auth/wrong-password") {
-      setMensaje("Incorrect password");
-    } else if (error.code === "auth/invalid-email"){
-    } else {
-      setMensaje("Incorrect mail/password");
+    } catch (error) {
+    switch (error.code) {
+      case "auth/user-not-found":
+        setMensaje("User not found");
+        break;
+      case "auth/wrong-password":
+        setMensaje("Incorrect password");
+        break;
+      case "auth/invalid-email":
+        setMensaje("Invalid email format");
+        break;
+      default:
+        setMensaje("Incorrect email or password");
+        break;
     }
   }
+
 };
 
   return (  

@@ -22,33 +22,28 @@ export default function PartyScreen({navigation}) {
     };
 
     const leaveParty = async () => {
-        try {
-            const user = auth.currentUser;
-            if (!currentParty) return;
+      try {
+        const user = auth.currentUser;
+        if (!user) return;
 
-            const partyRef = doc(db, "parties", currentParty);
-            const partySnap = await getDoc(partyRef);
+        const partyRef = doc(db, "parties", currentParty);
 
-            if (!partySnap.exists()) return;
+        await updateDoc(partyRef, {
+          members: arrayRemove(user.uid)
+        });
 
-            // Quitar usuario
-            await updateDoc(partyRef, {
-            members: arrayRemove(user.uid)
-            });
+        const updatedSnap = await getDoc(partyRef);
+        if (!updatedSnap.exists()) return;
 
-            const updatedSnap = await getDoc(partyRef);
-            if (!updatedSnap.exists()) return;
+        const updatedData = updatedSnap.data();
 
-            const updatedData = updatedSnap.data();
-
-            // Borrar la party si ya no tiene miembros
-            if (!updatedData.members || updatedData.members.length === 0) {
-            await deleteDoc(partyRef);
-            }
-
-        } catch (error) {
-            console.log(error);
+        if (!updatedData.members || updatedData.members.length === 0) {
+          await deleteDoc(partyRef);
         }
+
+      } catch (error) {
+        console.log("leaveParty error:", error);
+      }
     };
 
     const joinParty = async () => {
@@ -81,7 +76,7 @@ export default function PartyScreen({navigation}) {
             
             let code = partyCode.toUpperCase();
             setCurrentParty(code);
-            navigation.navigate('gameSelection',{code});
+            navigation.navigate('gameSelection', {code});
 
         } catch (error) {
             console.log(error);
