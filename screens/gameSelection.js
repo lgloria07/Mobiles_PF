@@ -9,7 +9,12 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       const [mensaje,setMensaje] = useState('');
       const { code } = route.params;
       const [activePlayers,setActivePlayers] = useState([]);
-      
+
+      //Seleccion de juegos
+      const charades = () => {console.log("Charades")}
+      const towerOfNerds = () => {console.log("TowerOfNerds")}
+      const taboo = () => {console.log("Taboo")}
+      const whoAmI = () => {console.log("WhoAmI")}
 
       const signOut = async () => {
               try {
@@ -76,7 +81,59 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
 
               {/* Juegos disponibles*/}
               <View style={styles.container2}>
-
+                <View style={styles.container21}>
+                  <View style={styles.container211}>
+                    <View style={styles.container2111}>
+                      <Image source={require('../Imagenes/Charades.jpg')}style={{width:"95%",height:"95%"}}/>
+                    </View>
+                    <View style={styles.container2112}>
+                      <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Charades</Text>
+                      {/* Boton Unirse a fiesta */}
+                        <TouchableOpacity onPress={charades} style={styles.join}>
+                          <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
+                        </TouchableOpacity>
+                    </View>
+                  </View>
+                  <View style={styles.container211}>
+                    <View style={styles.container2111}>
+                      <Image source={require('../Imagenes/TowerOfNerds.jpg')}style={{width:"95%",height:"95%"}}/>
+                    </View>
+                    <View style={styles.container2112}>
+                      <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Tower of nerds</Text>
+                      {/* Boton Unirse a fiesta */}
+                        <TouchableOpacity onPress={towerOfNerds} style={styles.join}>
+                          <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
+                        </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.container21}>
+                  <View style={styles.container211}>
+                    <View style={styles.container2111}>
+                      <Image source={require('../Imagenes/taboo.jpg')}style={{width:"95%",height:"95%"}}/>
+                    </View>
+                    <View style={styles.container2112}>
+                      <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Taboo</Text>
+                      {/* Boton Unirse a fiesta */}
+                        <TouchableOpacity onPress={taboo} style={styles.join}>
+                          <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
+                        </TouchableOpacity>
+                    </View>
+                  </View>
+                  <View style={styles.container211}>
+                    <View style={styles.container2111}>
+                      <Image source={require('../Imagenes/who.jpg')}style={{width:"95%",height:"95%"}}/>
+                    </View>
+                    <View style={styles.container2112}>
+                      <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Who am I?</Text>
+                      {/* Boton Unirse a fiesta */}
+                        <TouchableOpacity onPress={whoAmI} style={styles.join}>
+                          <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
+                        </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+                
               </View>
 
               {/* Boton Cerrar Sesión */}
@@ -92,7 +149,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
     container: {
       flex: 1,
       flexDirection:'column',
-      backgroundColor: '#131B2D',
+      backgroundColor: '#14213b',
       alignItems: 'center',
       justifyContent: 'flex-start',
     },
@@ -157,12 +214,39 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
     code:{
       color:'#C2C6CE',
       fontSize:14,
+      marginBottom:5,
     },
     container2:{
       height:"60%",
       width:"100%",
-      borderColor:'white',
-      borderWidth:2,
+      flexDirection:"column",
+      alignItems:"center",
+      justifyContent:'center',
+    },
+    container21:{
+      width:"100%",
+      height:"50%",
+      flexDirection:"row",
+      alignItems:"center",
+      justifyContent:'space-around',
+    },
+    container211:{
+      width:"45%",
+      height:"90%",
+      backgroundColor:"#111725",
+      borderRadius:20,
+    },
+    container2111:{
+      width:"100%",
+      height:"60%",
+      alignItems:"center",
+      justifyContent:"center",
+    },
+    container2112:{
+      width:"100%",
+      height:"40%",
+      alignItems:"center",
+      justifyContent:"center",
     },
     signOut:{
       height:40,
@@ -173,4 +257,13 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       alignItems:'center',
       justifyContent:'center',
     },
+    join:{
+    height:"35%",
+    width:"70%",
+    backgroundColor:'#33A548',
+    borderRadius:8,
+    marginTop:10,
+    alignItems:'center',
+    justifyContent:'center',
+  },
   });
