@@ -1,9 +1,11 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+//Import de todas las pantallas
 import LoginScreen from './screens/login';
 import RegisterScreen from './screens/register';
 import PartyScreen from './screens/party';
 import GameSelection from './screens/gameSelection'
+import RulesTower from './screens/rulesTower';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,6 +34,11 @@ export default function App() {
         <Stack.Screen
         name="gameSelection"
         component={GameSelection}
+        />
+
+        <Stack.Screen 
+          name="rulesTower" 
+          component={RulesTower} 
         />
 
       </Stack.Navigator>

@@ -44,7 +44,6 @@ const Ingresar = async () => {
   }
 
 };
-
   return (  
     <View style={styles.container}>
 

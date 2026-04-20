@@ -12,7 +12,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
 
       //Seleccion de juegos
       const charades = () => {console.log("Charades")}
-      const towerOfNerds = () => {console.log("TowerOfNerds")}
+      const towerOfNerds = () => {navigation.navigate('rulesTower')}
       const taboo = () => {console.log("Taboo")}
       const whoAmI = () => {console.log("WhoAmI")}
 
@@ -185,7 +185,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
     container121:{
       width:"80%",
       height:"20%",
-      backgroundColor:"#5acb84",
+      backgroundColor:"#5fba80",
       alignItems:"center",
       justifyContent:'center',
       position: "relative",
@@ -194,7 +194,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
     container122:{
       width:"80%",
       height:"80%",
-      backgroundColor:"#D9D9D9",
+      backgroundColor:"#b9b9cf",
       alignItems:"center",
       borderRadius:10,
       marginTop:-10,

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "379256905438",
+    "firebase_url": "https://greenmonster-c6889-default-rtdb.firebaseio.com",
+    "project_id": "greenmonster-c6889",
+    "storage_bucket": "greenmonster-c6889.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379256905438:android:68c77e4324a52461546c4f",
+        "android_client_info": {
+          "package_name": "com.luis.greenmonster"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "379256905438-pgtti3drnsvfttct3s4nl8vatgnv42rs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyChwZemUKnQVrj7Nto28ePcR6Bq6fz-xiE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "379256905438-pgtti3drnsvfttct3s4nl8vatgnv42rs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
