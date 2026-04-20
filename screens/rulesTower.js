@@ -41,30 +41,30 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
 
               {/* Carta de juego*/}
               <View style={styles.container2}>
-                  <View style={styles.container211}>
-                    <View style={styles.container2111}>
-                      <Image source={require('../Imagenes/who.jpg')}style={{width:"90%",height:"70%",marginTop:60,borderRadius:10,}}/>
-                    </View>
-                    <View style={styles.container2112}>
-                      <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-160}}>Who am I?</Text>
-                    </View>
-                  </View>
+                {/* LEFT */}
+                <View style={styles.left}>
+                  <Image 
+                    source={require('../Imagenes/TowerOfNerds.jpg')} 
+                    style={styles.image}
+                  />
+                  <Text style={styles.gameTitle}>Tower of Nerds</Text>
+                </View>
 
-                  <View style={styles.container211}>
-                    <View style={[styles.container2112, { height:"100%", paddingHorizontal:4, marginTop:-80, marginRight:6 }]}>
-                      <Text style={{color:"white",fontSize:14,marginTop:-30,textAlign:"center"}}>You are going to be given a 
-                        category. You’ll have to guess characters that fit the given category, 
-                        if you guess right, you can guess again. If you guess your category incorrectly, 
-                        you lose (be careful, you only have one attempt at doing so).</Text>
+                {/* RIGHT */}
+                <View style={styles.right}>
+                  <Text style={styles.rules}>
+                    You are going to be given a category. You’ll have to guess characters that fit the given category. 
+                    If you guess right, you can guess again.
+                    {"\n\n"}
+                    If you guess your category incorrectly, you lose (be careful, you only have one attempt).
+                  </Text>
 
-                      <View style={{borderColor:"white",width:"90%",borderWidth:0.2,marginTop:15}}></View>
+                  <View style={styles.line} />
 
-                      <Text style={{color:"white",fontSize:13,marginTop:20}}>Number of players: 2 - 8</Text>
-                      <Text style={{color:"white",fontSize:13,marginTop:20}}>Aprox time: 15 minutes</Text>
+                  <Text style={styles.info}>Number of players: 2 - 8</Text>
+                  <Text style={styles.info}>Approx time: 15 minutes</Text>
+                </View>
 
-                    </View>
-                  </View> 
-                
               </View>
 
               {/* Boton Cerrar Sesión */}
@@ -84,6 +84,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       alignItems: 'center',
       justifyContent: 'flex-start',
     },
+    
     container1:{
       height:120,
       width:"100%",
@@ -112,6 +113,12 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       flexDirection:"column",
       alignItems:"center",
       justifyContent:"flex-start",
+    },
+    line: {
+      height: 1,
+      backgroundColor: "#ffffff40",
+      marginVertical: 12,
+      width: "90%",
     },
     container121:{
       width:"80%",
@@ -142,43 +149,52 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       fontSize:11,
       fontWeight:'bold',
     },
-    container2:{
-      height:"50%",
-      width:"95%",
+    container2: {
+      width: "92%",
+      backgroundColor: "#1F2937",
+      borderRadius: 15,
       flexDirection: "row",
-      alignItems:"center",
-      justifyContent:'center',
-      borderRadius:20,
-      backgroundColor:"#1F2937",
-      borderRadius:10,
+      padding: 15,
+      marginTop: 10,
     },
-    container211:{
-      width:"50%",
-      height:"100%",
-      backgroundColor:"#03224d43",
-      justifyContent:"center",
-      alignItems:"center",
-      borderRadius:10,
-    },
-    container2111:{
-      width:"100%",
-      height:"60%",
-      alignItems:"center",
+    left: {
+      width: "40%",
+      alignItems: "center",
       justifyContent:"center",
     },
-    container2112:{
-      width:"100%",
-      height:"40%",
-      alignItems:"center",
-      justifyContent:"center",
+    image: {
+      width: "100%",
+      height: 110,
+      borderRadius: 10,
+    },
+    gameTitle: {
+      color: "#C2C6CE",
+      fontSize:15,
+      marginTop: 10,
+      fontWeight: "bold",
+    },
+    right: {
+      width: "60%",
+      paddingLeft: 15,
+      justifyContent: "center",
+    },
+    rules: {
+      color: "#C2C6CE",
+      fontSize: 13,
+      lineHeight: 20,
+    },
+    info: {
+      color: "#C2C6CE",
+      fontSize: 12,
+      marginTop: 5,
     },
     start:{
-      height:60,
-      width:150,
+      height:55,
+      width:"60%",
       backgroundColor:'#33A548',
-      borderRadius:10,
-      marginTop:10,
+      borderRadius:12,
+      marginTop:25,
       alignItems:'center',
       justifyContent:'center',
-    },
+    }
   });
