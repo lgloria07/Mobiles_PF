@@ -5,6 +5,7 @@ import { auth, db } from '../services/firebase';
 import { collection, doc, setDoc, updateDoc, arrayUnion, getDoc, arrayRemove, deleteDoc} from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
+import { categories } from '../data/categories';
 //Import hooks
 import usePartyPlayers from '../hooks/usePartyPlayers';
 
@@ -15,6 +16,43 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
       const { code } = route.params;
       const { activePlayers } = usePartyPlayers(code);
       const currentUid = auth.currentUser?.uid;
+      const currentPlayer = activePlayers.find(p => p.uid === currentUid);
+      const isHost = currentPlayer?.isHost || false;
+
+      const startGame = async () => {
+        try {
+          const partyRef = doc(db, 'parties', code);
+          const partySnap = await getDoc(partyRef);
+
+          if (!partySnap.exists()) return;
+
+          const data = partySnap.data();
+          const members = data.members || [];
+
+          // Asignar categorías aleatorias
+          const shuffled = [...categories].sort(() => 0.5 - Math.random());
+
+          for (let i = 0; i < members.length; i++) {
+            const uid = members[i];
+
+            const playerRef = doc(db, 'parties', code, 'players', uid);
+
+            await setDoc(playerRef, {
+              category: shuffled[i % shuffled.length]
+            }, { merge: true });
+          }
+
+          //Guardar estado del juego
+          await updateDoc(partyRef, {
+            status: 'in_progress',
+            game: 'tower'
+          });
+
+        } catch (error) {
+          console.error('Error starting game: ', error);
+          setMensaje('Error starting game. Please try again.');
+        }
+      };
 
       return (  
           <View style={styles.container}>
@@ -87,7 +125,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
               </View>
 
               {/* Boton Cerrar Sesión */}
-              <TouchableOpacity style={styles.start}>
+              <TouchableOpacity onPress={startGame} style={styles.start} disabled={!isHost}>
                 <Text style={{color:'white',fontSize:20,fontWeight:'bold'}}>Start</Text>
               </TouchableOpacity>
           

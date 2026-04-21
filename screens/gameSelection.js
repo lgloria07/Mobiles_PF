@@ -13,8 +13,9 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
       const [mensaje,setMensaje] = useState('');
       const { code } = route.params;
       const { activePlayers } = usePartyPlayers(code);
-
       const currentUid = auth.currentUser?.uid; 
+      const currentPlayer = activePlayers.find(p => p.uid === currentUid);
+      const isHost = currentPlayer?.isHost || false;
 
       //Seleccion de juegos
       const charades = () => {
@@ -65,6 +66,37 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
           console.log("leaveParty error:", error);
         }
       };
+
+      useEffect(() => {
+        const partyRef = doc(db, "parties", code);
+
+        const unsubscribe = onSnapshot(partyRef, (snapshot) => {
+          if (!snapshot.exists()) return;
+
+          const data = snapshot.data();
+
+          if (data.status === "in_progress") {
+
+            if (data.game === "tower") {
+              navigation.navigate("tower", { code });
+            }
+
+            if (data.game === "charades") {
+              navigation.navigate("charades", { code });
+            }
+
+            if (data.game === "taboo") {
+              navigation.navigate("taboo", { code });
+            }
+
+            if (data.game === "whoami") {
+              navigation.navigate("whoAmI", { code });
+            }
+          }
+        });
+
+        return unsubscribe;
+      }, [code, navigation]);
 
 
       return (  
@@ -122,19 +154,19 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Charades</Text>
                       {/* Boton Unirse a fiesta */}
-                        <TouchableOpacity onPress={charades} style={styles.join}>
+                        <TouchableOpacity onPress={charades} style={styles.join} disabled={!isHost}>
                           <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
                         </TouchableOpacity>
                     </View>
                   </View>
                   <View style={styles.container211}>
                     <View style={styles.container2111}>
-                      <Image source={require('../Imagenes/tower.png')}style={styles.image}/>
+                      <Image source={require('../Imagenes/tower.png')}style={styles.image} disabled={!isHost}/>
                     </View>
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Tower of nerds</Text>
                       {/* Boton Unirse a fiesta */}
-                        <TouchableOpacity onPress={towerOfNerds} style={styles.join}>
+                        <TouchableOpacity onPress={towerOfNerds} style={styles.join} disabled={!isHost}>
                           <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
                         </TouchableOpacity>
                     </View>
@@ -148,7 +180,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Taboo</Text>
                       {/* Boton Unirse a fiesta */}
-                        <TouchableOpacity onPress={taboo} style={styles.join}>
+                        <TouchableOpacity onPress={taboo} style={styles.join} disabled={!isHost}>
                           <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
                         </TouchableOpacity>
                     </View>
@@ -160,7 +192,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Who am I?</Text>
                       {/* Boton Unirse a fiesta */}
-                        <TouchableOpacity onPress={whoAmI} style={styles.join}>
+                        <TouchableOpacity onPress={whoAmI} style={styles.join} disabled={!isHost}>
                           <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
                         </TouchableOpacity>
                     </View>
