@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'reac
 import { auth, db } from '../services/firebase';
 import { collection, doc, setDoc, updateDoc, arrayUnion, getDoc, arrayRemove, deleteDoc, } from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
+import { Ionicons } from '@expo/vector-icons';
 
   export default function GameSelection({navigation, route}){
       const [mensaje,setMensaje] = useState('');
@@ -56,6 +57,11 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       return (  
           <View style={styles.container}>
 
+            {/* Flecha return */}
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={26} color="white" />
+            </TouchableOpacity>
+
             {/* Logo y Titulo */}
             <View style={styles.container1}>
               <View style={styles.container11}>
@@ -84,7 +90,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
                 <View style={styles.container21}>
                   <View style={styles.container211}>
                     <View style={styles.container2111}>
-                      <Image source={require('../Imagenes/Charades.jpg')}style={{width:"95%",height:"95%"}}/>
+                      <Image source={require('../Imagenes/charades.png')}style={styles.image}/>
                     </View>
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Charades</Text>
@@ -96,7 +102,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
                   </View>
                   <View style={styles.container211}>
                     <View style={styles.container2111}>
-                      <Image source={require('../Imagenes/TowerOfNerds.jpg')}style={{width:"95%",height:"95%"}}/>
+                      <Image source={require('../Imagenes/tower.png')}style={styles.image}/>
                     </View>
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Tower of nerds</Text>
@@ -110,7 +116,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
                 <View style={styles.container21}>
                   <View style={styles.container211}>
                     <View style={styles.container2111}>
-                      <Image source={require('../Imagenes/taboo.jpg')}style={{width:"95%",height:"95%"}}/>
+                      <Image source={require('../Imagenes/taboo.png')}style={styles.image}/>
                     </View>
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Taboo</Text>
@@ -122,7 +128,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
                   </View>
                   <View style={styles.container211}>
                     <View style={styles.container2111}>
-                      <Image source={require('../Imagenes/who.jpg')}style={{width:"95%",height:"95%"}}/>
+                      <Image source={require('../Imagenes/who.png')}style={styles.image}/>
                     </View>
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Who am I?</Text>
@@ -149,7 +155,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
     container: {
       flex: 1,
       flexDirection:'column',
-      backgroundColor: '#14213b',
+      backgroundColor: '#0F172A',
       alignItems: 'center',
       justifyContent: 'flex-start',
     },
@@ -216,6 +222,13 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       fontSize:14,
       marginBottom:5,
     },
+    image:{
+      height:"80%",
+      width:"80%",
+      borderWidth:0.2,
+      borderColor:"white",
+      borderRadius:10,
+    },
     container2:{
       height:"60%",
       width:"100%",
@@ -233,7 +246,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
     container211:{
       width:"45%",
       height:"90%",
-      backgroundColor:"#111725",
+      backgroundColor:"#1E293B",
       borderRadius:20,
     },
     container2111:{
@@ -266,4 +279,13 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
     alignItems:'center',
     justifyContent:'center',
   },
+  backButton: {
+      position: "absolute",
+      top: 50,
+      left: 20,
+      zIndex: 10,
+      backgroundColor: "#ffffff20",
+      padding: 8,
+      borderRadius: 50,
+    },
   });

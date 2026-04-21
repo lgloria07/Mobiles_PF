@@ -155,7 +155,22 @@ const Registrar = async () => {
 
       {/* Boton Registrarse */}
       <TouchableOpacity onPress={Registrar} style={styles.ingresar}>
-        <Text style={{color:'white',fontSize:17,fontWeight:'bold'}}>Sign Up</Text>
+        <Text style={{color:'white',fontSize:17,fontWeight:'bold'}}>Register</Text>
+      </TouchableOpacity>
+
+      {/* Resgistrarse */}
+      <Text style={{
+        marginTop:10,
+        color:'#e2eee7',
+        fontWeight:'bold',
+        fontSize:15,
+      }}>Already have an account?</Text>
+      <TouchableOpacity onPress={()=> navigation.navigate('login')}>
+        <Text style={{
+            color:'#33A548',
+            fontWeight:'bold',
+            fontSize:14,
+        }}>Sign In</Text>
       </TouchableOpacity>
     </View>
   );
@@ -165,7 +180,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection:'column',
-    backgroundColor: '#131B2D',
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
@@ -216,7 +231,7 @@ const styles = StyleSheet.create({
     borderWidth:1,
     borderColor:'#0a1429',
     borderRadius:15,
-    backgroundColor:'#1d2a49',
+    backgroundColor:'#1E293B',
     height:"100%",
     width:"100%",
     color:'#e2eee7',
@@ -235,5 +250,7 @@ const styles = StyleSheet.create({
     marginTop:20,
     alignItems:'center',
     justifyContent:'center',
+    borderRadius: 16,
+paddingVertical: 12,
   },
 });

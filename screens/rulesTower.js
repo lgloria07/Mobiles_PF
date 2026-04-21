@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'reac
 import { auth, db } from '../services/firebase';
 import { collection, doc, setDoc, updateDoc, arrayUnion, getDoc, arrayRemove, deleteDoc, } from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
+import { Ionicons } from '@expo/vector-icons';
 
   export default function RulesTower({navigation, route}){
       const [mensaje,setMensaje] = useState('');
@@ -18,6 +19,14 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
 
       return (  
           <View style={styles.container}>
+
+            {/* Flecha return */}
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()} 
+              style={styles.backButton}
+            >
+              <Ionicons name="arrow-back" size={26} color="white" />
+            </TouchableOpacity>
 
             {/* Logo y Titulo */}
             <View style={styles.container1}>
@@ -61,7 +70,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
 
                   <View style={styles.line} />
 
-                  <Text style={styles.info}>Number of players: 2 - 8</Text>
+                  <Text style={styles.info}>Number of players: 2 - 5</Text>
                   <Text style={styles.info}>Approx time: 15 minutes</Text>
                 </View>
 
@@ -129,6 +138,15 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       position: "relative",
       zIndex: 2,
     },
+    backButton: {
+      position: "absolute",
+      top: 50,
+      left: 20,
+      zIndex: 10,
+      backgroundColor: "#ffffff20",
+      padding: 8,
+      borderRadius: 50,
+    },
     container122:{
       width:"80%",
       height:"80%",
@@ -155,7 +173,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
       borderRadius: 15,
       flexDirection: "row",
       padding: 15,
-      marginTop: 10,
+      marginTop: 40,
     },
     left: {
       width: "40%",

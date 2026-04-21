@@ -4,6 +4,7 @@ import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'reac
 import { auth, db } from '../services/firebase';
 import { collection, doc, setDoc, updateDoc, arrayUnion, getDoc, arrayRemove, deleteDoc, } from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function PartyScreen({navigation}) {
     const [mensaje,setMensaje] = useState('');
@@ -115,6 +116,11 @@ export default function PartyScreen({navigation}) {
   return (  
     <View style={styles.container}>
 
+      {/* Flecha return */}
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={26} color="white" />
+      </TouchableOpacity>
+
       {/* Logo y Titulo */}
       <View style={styles.container1}>
         <View style={styles.container11}>
@@ -169,7 +175,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection:'column',
-    backgroundColor: '#131B2D',
+    backgroundColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
@@ -192,7 +198,7 @@ const styles = StyleSheet.create({
   messageContainer:{
     width:"80%",
     marginTop:-55,
-    marginBottom:20,
+    marginBottom:-50,
     alignItems:"center",
     justifyContent:"center",
   },
@@ -228,7 +234,7 @@ const styles = StyleSheet.create({
     borderWidth:1,
     borderColor:'#0a1429',
     borderRadius:15,
-    backgroundColor:'#1d2a49',
+    backgroundColor:'#1E293B',
     height:"100%",
     width:"100%",
     color:'#e2eee7',
@@ -262,8 +268,17 @@ const styles = StyleSheet.create({
     width:150,
     backgroundColor:'#863535',
     borderRadius:10,
-    marginTop:140,
+    marginTop:100,
     alignItems:'center',
     justifyContent:'center',
   },
+  backButton: {
+      position: "absolute",
+      top: 50,
+      left: 20,
+      zIndex: 10,
+      backgroundColor: "#ffffff20",
+      padding: 8,
+      borderRadius: 50,
+    },
 });
