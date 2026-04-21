@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 //Import hooks
 import usePartyPlayers from '../hooks/usePartyPlayers';
 
-  export default function RulesTower({navigation, route}){
+  export default function RulesCharades({navigation, route}){
       const [mensaje,setMensaje] = useState('');
 
       //Jugadores activos
@@ -29,7 +29,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
               <View style={styles.container11}>
                 <Image source={require('../Imagenes/logo.png')}style={{width:"100%",height:"60%"}}/>
                 <Text style={styles.title}>Green Monster</Text>
-                <Text style={styles.subtitle}>Tower Of Nerds - Rules</Text>
+                <Text style={styles.subtitle}>Charades - Rules</Text>
               </View>
 
               {/* Jugadores Activos */}
@@ -63,25 +63,25 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                 {/* LEFT */}
                 <View style={styles.left}>
                   <Image 
-                    source={require('../Imagenes/tower.png')} 
+                    source={require('../Imagenes/charades.png')} 
                     style={styles.image}
                   />
-                  <Text style={styles.gameTitle}>Tower of Nerds</Text>
+                  <Text style={styles.gameTitle}>Charades</Text>
                 </View>
 
                 {/* RIGHT */}
                 <View style={styles.right}>
                   <Text style={styles.rules}>
-                    You are going to be given a category. You’ll have to guess characters that fit the given category. 
-                    If you guess right, you add them to your tower and can guess again.
+                    You are going to be given a word or phrase. You must describe it so the other player can guess it. 
+                    If they guess correctly, you get a point and move on to the next word.
                     {"\n\n"}
-                    If you guess your category incorrectly, you lose (be careful, you only have one attempt to guess the category).
+                    You cannot say the exact word or any part of it. Be creative with your clues.
                   </Text>
 
                   <View style={styles.line} />
 
                   <Text style={styles.info}>Number of players: 2 - 5</Text>
-                  <Text style={styles.info}>Approx time: 10 minutes</Text>
+                  <Text style={styles.info}>Approx time: 1 minute per round</Text>
                 </View>
 
               </View>
@@ -164,7 +164,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
       alignItems:"center",
       borderRadius:10,
       marginTop:-10,
-      position: "relative", //todo sigue normal, pero es necesario para poder usar el index z
+      position: "relative", 
       zIndex: 1,
     },
     title:{

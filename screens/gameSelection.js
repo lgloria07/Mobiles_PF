@@ -17,12 +17,18 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
       const currentUid = auth.currentUser?.uid; 
 
       //Seleccion de juegos
-      const charades = () => {console.log("Charades")}
-      const towerOfNerds = () => {
-        navigation.navigate('rulesTower', { code }); // 👈 solo esto
+      const charades = () => {
+        navigation.navigate('rulesCharades', { code });
       }
-      const taboo = () => {console.log("Taboo")}
-      const whoAmI = () => {console.log("WhoAmI")}
+      const towerOfNerds = () => {
+        navigation.navigate('rulesTower', { code });
+      }
+      const taboo = () => {
+        navigation.navigate('rulesTaboo', { code });
+      }
+      const whoAmI = () => {
+        navigation.navigate('rulesWhoAmI', { code });
+      }
 
       const signOut = async () => {
               try {

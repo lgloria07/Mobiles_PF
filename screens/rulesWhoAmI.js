@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 //Import hooks
 import usePartyPlayers from '../hooks/usePartyPlayers';
 
-  export default function RulesTower({navigation, route}){
+  export default function RulesWhoAmI({navigation, route}){
       const [mensaje,setMensaje] = useState('');
 
       //Jugadores activos
@@ -63,19 +63,19 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                 {/* LEFT */}
                 <View style={styles.left}>
                   <Image 
-                    source={require('../Imagenes/tower.png')} 
+                    source={require('../Imagenes/who.png')} 
                     style={styles.image}
                   />
-                  <Text style={styles.gameTitle}>Tower of Nerds</Text>
+                  <Text style={styles.gameTitle}>Who Am I?</Text>
                 </View>
 
                 {/* RIGHT */}
                 <View style={styles.right}>
                   <Text style={styles.rules}>
-                    You are going to be given a category. You’ll have to guess characters that fit the given category. 
-                    If you guess right, you add them to your tower and can guess again.
+                    You are going to be given a character from a list of possible options.
+                    Ask yes or no questions to figure out which character you are.
                     {"\n\n"}
-                    If you guess your category incorrectly, you lose (be careful, you only have one attempt to guess the category).
+                    You can only guess your character one time, so make sure you are completely sure before answering.
                   </Text>
 
                   <View style={styles.line} />
@@ -164,7 +164,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
       alignItems:"center",
       borderRadius:10,
       marginTop:-10,
-      position: "relative", //todo sigue normal, pero es necesario para poder usar el index z
+      position: "relative", 
       zIndex: 1,
     },
     title:{

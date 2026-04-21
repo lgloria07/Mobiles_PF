@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 //Import hooks
 import usePartyPlayers from '../hooks/usePartyPlayers';
 
-  export default function RulesTower({navigation, route}){
+  export default function RulesTaboo({navigation, route}){
       const [mensaje,setMensaje] = useState('');
 
       //Jugadores activos
@@ -63,25 +63,25 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                 {/* LEFT */}
                 <View style={styles.left}>
                   <Image 
-                    source={require('../Imagenes/tower.png')} 
+                    source={require('../Imagenes/taboo.png')} 
                     style={styles.image}
                   />
-                  <Text style={styles.gameTitle}>Tower of Nerds</Text>
+                  <Text style={styles.gameTitle}>Taboo</Text>
                 </View>
 
                 {/* RIGHT */}
                 <View style={styles.right}>
                   <Text style={styles.rules}>
-                    You are going to be given a category. You’ll have to guess characters that fit the given category. 
-                    If you guess right, you add them to your tower and can guess again.
+                    You are going to be given a word to describe and five forbidden words that you cannot use.
+                    Your goal is to help the other player guess the main word without saying any of the forbidden ones.
                     {"\n\n"}
-                    If you guess your category incorrectly, you lose (be careful, you only have one attempt to guess the category).
+                    If you say one of the forbidden words, you lose that point.
                   </Text>
 
                   <View style={styles.line} />
 
                   <Text style={styles.info}>Number of players: 2 - 5</Text>
-                  <Text style={styles.info}>Approx time: 10 minutes</Text>
+                  <Text style={styles.info}>Approx time: 3 minutes per round</Text>
                 </View>
 
               </View>
@@ -164,7 +164,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
       alignItems:"center",
       borderRadius:10,
       marginTop:-10,
-      position: "relative", //todo sigue normal, pero es necesario para poder usar el index z
+      position: "relative", 
       zIndex: 1,
     },
     title:{

@@ -54,6 +54,7 @@ const Ingresar = async () => {
         </View>
         <View style={styles.container12}>
           <Text style={styles.title}>Green Monster</Text>
+          <Text style={styles.subtitle}>Party Games</Text>
         </View>
       </View>
 
@@ -152,6 +153,11 @@ const styles = StyleSheet.create({
     fontSize:35,
     fontWeight:'bold',
   },
+  subtitle:{
+    color:'#e2eee7',
+    fontSize:18,
+    fontWeight:'bold',
+  },
   container2:{
     height:90,
     width:"80%",
@@ -163,7 +169,7 @@ const styles = StyleSheet.create({
   container22:{
     height:"65%",
     width:"100%",
-  },
+  },  
   subtitulo:{
     color:'#e2eee7',
     fontWeight:'bold',
