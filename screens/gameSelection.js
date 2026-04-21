@@ -5,12 +5,14 @@ import { auth, db } from '../services/firebase';
 import { collection, doc, setDoc, updateDoc, arrayUnion, getDoc, arrayRemove, deleteDoc,onSnapshot } from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
+//Import de hook 
+import usePartyPlayers from '../hooks/usePartyPlayers';
 
 
   export default function GameSelection({navigation, route}){
       const [mensaje,setMensaje] = useState('');
       const { code } = route.params;
-      const [activePlayers,setActivePlayers] = useState([]);
+      const { activePlayers } = usePartyPlayers(code);
 
       const currentUid = auth.currentUser?.uid; 
 
@@ -21,39 +23,6 @@ import { Ionicons } from '@expo/vector-icons';
       }
       const taboo = () => {console.log("Taboo")}
       const whoAmI = () => {console.log("WhoAmI")}
-
-      useEffect(() => {
-        const partyRef = doc(db, "parties", code);
-
-        const unsubscribe = onSnapshot(partyRef, async (snapshot) => {
-          if (!snapshot.exists()) return;
-
-          const data = snapshot.data();
-          const members = data.members || []; 
-          const host = data.host;
-
-          // Obtener usernames
-          const playersData = await Promise.all(
-            members.map(async (uid) => {
-              const userRef = doc(db, "users", uid);
-              const userSnap = await getDoc(userRef);
-
-              if (userSnap.exists()) {
-                return {
-                  uid,
-                  username: userSnap.data().username,
-                  isHost: uid === host
-                };
-              }
-              return null;
-            })
-          );
-
-          setActivePlayers(playersData.filter(p => p !== null));
-        });
-
-        return () => unsubscribe();
-      }, [code]);
 
       const signOut = async () => {
               try {
