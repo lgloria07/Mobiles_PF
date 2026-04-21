@@ -2,20 +2,58 @@ import {useState, useEffect} from 'react';
 import { StyleSheet, Text, View, Image, TextInput, TouchableOpacity } from 'react-native';
 /*  Conexion con fireStore */
 import { auth, db } from '../services/firebase';
-import { collection, doc, setDoc, updateDoc, arrayUnion, getDoc, arrayRemove, deleteDoc, } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, arrayUnion, getDoc, arrayRemove, deleteDoc,onSnapshot } from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
+
 
   export default function GameSelection({navigation, route}){
       const [mensaje,setMensaje] = useState('');
       const { code } = route.params;
       const [activePlayers,setActivePlayers] = useState([]);
 
+      const currentUid = auth.currentUser?.uid; 
+
       //Seleccion de juegos
       const charades = () => {console.log("Charades")}
-      const towerOfNerds = () => {navigation.navigate('rulesTower')}
+      const towerOfNerds = () => {
+        navigation.navigate('rulesTower', { code }); // 👈 solo esto
+      }
       const taboo = () => {console.log("Taboo")}
       const whoAmI = () => {console.log("WhoAmI")}
+
+      useEffect(() => {
+        const partyRef = doc(db, "parties", code);
+
+        const unsubscribe = onSnapshot(partyRef, async (snapshot) => {
+          if (!snapshot.exists()) return;
+
+          const data = snapshot.data();
+          const members = data.members || []; 
+          const host = data.host;
+
+          // Obtener usernames
+          const playersData = await Promise.all(
+            members.map(async (uid) => {
+              const userRef = doc(db, "users", uid);
+              const userSnap = await getDoc(userRef);
+
+              if (userSnap.exists()) {
+                return {
+                  uid,
+                  username: userSnap.data().username,
+                  isHost: uid === host
+                };
+              }
+              return null;
+            })
+          );
+
+          setActivePlayers(playersData.filter(p => p !== null));
+        });
+
+        return () => unsubscribe();
+      }, [code]);
 
       const signOut = async () => {
               try {
@@ -76,7 +114,21 @@ import { Ionicons } from '@expo/vector-icons';
                   <Text style={{fontWeight:'bold',fontSize:13}}>Active Players</Text>
                 </View>
                 <View style={styles.container122}>
-                  <Text>{activePlayers.join(", ")}</Text>
+                  {/* MOSTRAR JUGADORES ACTIVOS */}
+                  <View style={{flexDirection: 'column',marginTop:8,}}>
+                    {activePlayers.map((player) => (
+                      <Text key={player.uid} 
+                        style={{
+                          color: player.isHost ? '#863535' : 'white', 
+                          fontWeight: 'bold',
+                          fontSize: 12,
+                        }}
+                      >
+                        {player.username}
+                        {player.uid === currentUid ? " (You)" : ""} 
+                      </Text>
+                    ))}
+                  </View>
                 </View>
               </View>
                 
@@ -204,7 +256,7 @@ import { Ionicons } from '@expo/vector-icons';
       alignItems:"center",
       borderRadius:10,
       marginTop:-10,
-      position: "relative", //todo sigue normal, pero es necesario para poder usar el index z
+      position: "relative",
       zIndex: 1,
     },
     title:{
