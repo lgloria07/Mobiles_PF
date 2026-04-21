@@ -21,10 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
           <View style={styles.container}>
 
             {/* Flecha return */}
-            <TouchableOpacity 
-              onPress={() => navigation.goBack()} 
-              style={styles.backButton}
-            >
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
               <Ionicons name="arrow-back" size={26} color="white" />
             </TouchableOpacity>
 

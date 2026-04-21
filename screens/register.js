@@ -251,6 +251,6 @@ const styles = StyleSheet.create({
     alignItems:'center',
     justifyContent:'center',
     borderRadius: 16,
-paddingVertical: 12,
+    paddingVertical: 12,
   },
 });
