@@ -126,7 +126,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                     {activePlayers.map((player) => (
                       <Text key={player.uid} 
                         style={{
-                          color: player.isHost ? '#863535' : 'white', 
+                          color: player.isHost ? '#863535' : 'black', 
                           fontWeight: 'bold',
                           fontSize: 12,
                         }}
@@ -154,19 +154,19 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Charades</Text>
                       {/* Boton Unirse a fiesta */}
-                        <TouchableOpacity onPress={charades} style={styles.join} disabled={!isHost}>
+                        <TouchableOpacity onPress={charades} style={[styles.join, !isHost && { opacity: 0.4 }]} disabled={!isHost}>
                           <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
                         </TouchableOpacity>
                     </View>
                   </View>
                   <View style={styles.container211}>
                     <View style={styles.container2111}>
-                      <Image source={require('../Imagenes/tower.png')}style={styles.image} disabled={!isHost}/>
+                      <Image source={require('../Imagenes/tower.png')}style={styles.image}/>
                     </View>
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Tower of nerds</Text>
                       {/* Boton Unirse a fiesta */}
-                        <TouchableOpacity onPress={towerOfNerds} style={styles.join} disabled={!isHost}>
+                        <TouchableOpacity onPress={towerOfNerds} style={[styles.join, !isHost && { opacity: 0.4 }]} disabled={!isHost}>
                           <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
                         </TouchableOpacity>
                     </View>
@@ -180,7 +180,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Taboo</Text>
                       {/* Boton Unirse a fiesta */}
-                        <TouchableOpacity onPress={taboo} style={styles.join} disabled={!isHost}>
+                        <TouchableOpacity onPress={taboo} style={[styles.join, !isHost && { opacity: 0.4 }]} disabled={!isHost}>
                           <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
                         </TouchableOpacity>
                     </View>
@@ -192,7 +192,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
                     <View style={styles.container2112}>
                       <Text style={{color:"white",fontWeight:"bold",fontSize:18,marginTop:-30}}>Who am I?</Text>
                       {/* Boton Unirse a fiesta */}
-                        <TouchableOpacity onPress={whoAmI} style={styles.join} disabled={!isHost}>
+                        <TouchableOpacity onPress={whoAmI} style={[styles.join, !isHost && { opacity: 0.4 }]} disabled={!isHost}>
                           <Text style={{color:'white',fontSize:14,fontWeight:'bold'}}>Play</Text>
                         </TouchableOpacity>
                     </View>
