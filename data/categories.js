@@ -34,5 +34,8 @@ export const categories = [
   "Villanos de Spiderman",
   "Villanos que han peleado contra los Avengers",
   "Villanos que han matado a algun heroe",
-  "Personajes que usen algun objeto para tener poderes"
+  "Personajes que usen algun objeto para tener poderes",
+  "Personajes que han sido mentores de otros personajes",
+  "Personajes que tienen mucho dinero",
+  
 ];
