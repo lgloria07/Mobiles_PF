@@ -3,6 +3,7 @@ import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView,TextInput,Modal} 
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../services/firebase';
 import usePartyPlayers from '../hooks/usePartyPlayers';
+import { useIsFocused } from '@react-navigation/native';
 import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 export default function TowerOfNerds({ navigation, route }) {
@@ -10,9 +11,13 @@ export default function TowerOfNerds({ navigation, route }) {
   const { activePlayers } = usePartyPlayers(code);
 
   const currentUid = auth.currentUser?.uid;
+  const currentPlayer = activePlayers.find(p => p.uid === currentUid);
+  const isHost = currentPlayer?.isHost;
 
   const [tower, setTower] = useState(['', '', '', '', '', '']);
   const [gameState, setGameState] = useState(null);
+  const [hasNavigated, setHasNavigated] = useState(false);
+  const isFocused = useIsFocused();
 
   const updateTowerItem = (text, index) => {
     const updatedTower = [...tower];
@@ -30,7 +35,7 @@ export default function TowerOfNerds({ navigation, route }) {
   }, [code]);
 
   const handleGuess = async () => {
-    if (gameState?.isGuessing) return;
+    if (gameState?.isGuessing || currentPlayer?.eliminated) return;
     await updateDoc(doc(db, 'parties', code), {
       gameState: {
         isGuessing: true,
@@ -80,15 +85,35 @@ export default function TowerOfNerds({ navigation, route }) {
   );
 
   useEffect(() => {
-    if (!gameState?.finished) return;
+    if (!gameState?.finished || !isHost) return;
 
-    const timeout = setTimeout(() => {
-      updateDoc(doc(db, 'parties', code), {
-        gameState: null
-      });
+    const timeout = setTimeout(async () => {
+      if (gameState.winner) {
+        await updateDoc(doc(db, 'parties', code), {
+          status: 'waiting',
+          game: null,
+          gameState: null,
+        });
+      } else {
+        await updateDoc(doc(db, 'parties', code), {
+          gameState: null
+        });
+      }
     }, 3000);
 
     return () => clearTimeout(timeout);
+  }, [gameState, isHost]);
+
+  useEffect(() => {
+    if (gameState?.finished && gameState?.winner && !hasNavigated) {
+      setHasNavigated(true);
+
+      const timeout = setTimeout(() => {
+        navigation.replace('gameSelection', { code });
+      }, 3000);
+
+      return () => clearTimeout(timeout);
+    }
   }, [gameState]);
 
   return (
@@ -115,7 +140,7 @@ export default function TowerOfNerds({ navigation, route }) {
                 </Text>
 
                 <Text style={{marginVertical:10}}>
-                  Vote if he is right or wrong
+                  Vote if {guessingPlayer?.username || 'this player'} is right or wrong
                 </Text>
 
                 <View style={{flexDirection:'row'}}>
@@ -214,7 +239,7 @@ export default function TowerOfNerds({ navigation, route }) {
         </View>
 
         <TouchableOpacity onPress={handleGuess} style={[styles.guessButton,gameState?.isGuessing && { opacity: 0.5 }]}
-          disabled={gameState?.isGuessing}>
+          disabled={gameState?.isGuessing || currentPlayer?.eliminated}>
           <Text>Guess</Text>
         </TouchableOpacity>
 
