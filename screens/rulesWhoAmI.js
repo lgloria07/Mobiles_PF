@@ -58,15 +58,6 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
         }
       };
 
-      const characterImages = {
-        "Mario": require('../Imagenes/whoCharacters/mario.png'),
-        "Luigi": require('../Imagenes/whoCharacters/luigi.png'),
-        "Peach": require('../Imagenes/whoCharacters/peach.png'),
-        "Bowser": require('../Imagenes/whoCharacters/bowser.png'),
-        "Yoshi": require('../Imagenes/whoCharacters/yoshi.png'),
-        "Toad": require('../Imagenes/whoCharacters/toad.png'),
-      };
-
       return (  
           <View style={styles.container}>
 

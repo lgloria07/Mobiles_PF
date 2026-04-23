@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../services/firebase';
 import usePartyPlayers from '../hooks/usePartyPlayers';
 import { doc, onSnapshot } from 'firebase/firestore';
+import { characterImages } from '../data/characterImages';
 
 export default function WhoAmI({ navigation, route }) {
   const { code } = route.params;
@@ -54,15 +55,6 @@ export default function WhoAmI({ navigation, route }) {
     if (!selected) return;
     console.log("Selected character:", selected);
   };
-
-  const characterImages = {
-    "Mario": require('../Imagenes/whoCharacters/mario.png'),
-    "Luigi": require('../Imagenes/whoCharacters/luigi.png'),
-    "Peach": require('../Imagenes/whoCharacters/peach.png'),
-    "Bowser": require('../Imagenes/whoCharacters/bowser.png'),
-    "Yoshi": require('../Imagenes/whoCharacters/yoshi.png'),
-    "Toad": require('../Imagenes/whoCharacters/toad.png'),
-    };
 
   return (
     <View style={styles.container}>
