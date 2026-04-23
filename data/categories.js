@@ -37,5 +37,8 @@ export const categories = [
   "Personajes que usen algun objeto para tener poderes",
   "Personajes que han sido mentores de otros personajes",
   "Personajes que tienen mucho dinero",
-  
+  "Personajes con capa",
+  "Personajes que usan máscara",
+  ""
+
 ];

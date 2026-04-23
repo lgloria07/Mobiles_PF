@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView,TextInput,} from 'react-native';
+import { useState, useEffect } from 'react';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView,TextInput,Modal} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { auth } from '../services/firebase';
+import { auth, db } from '../services/firebase';
 import usePartyPlayers from '../hooks/usePartyPlayers';
+import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 export default function TowerOfNerds({ navigation, route }) {
   const { code } = route.params;
@@ -11,6 +12,7 @@ export default function TowerOfNerds({ navigation, route }) {
   const currentUid = auth.currentUser?.uid;
 
   const [tower, setTower] = useState(['', '', '', '', '', '']);
+  const [gameState, setGameState] = useState(null);
 
   const updateTowerItem = (text, index) => {
     const updatedTower = [...tower];
@@ -18,9 +20,138 @@ export default function TowerOfNerds({ navigation, route }) {
     setTower(updatedTower);
   };
 
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'parties', code), (snap) => {
+      if (!snap.exists()) return;
+      setGameState(snap.data().gameState || null);
+    });
+
+    return unsub;
+  }, [code]);
+
+  const handleGuess = async () => {
+    if (gameState?.isGuessing) return;
+    await updateDoc(doc(db, 'parties', code), {
+      gameState: {
+        isGuessing: true,
+        guessingPlayer: currentUid,
+        votes: {},
+        finished: false,
+      },
+    });
+  };
+
+  const vote = async (value) => {
+    if (currentUid === gameState?.guessingPlayer) return;
+    if (gameState?.votes?.[currentUid] !== undefined) return;
+
+    await updateDoc(doc(db, 'parties', code), {
+      [`gameState.votes.${currentUid}`]: value,
+    });
+  };
+
+  useEffect(() => {
+    if (!gameState || !gameState.isGuessing || gameState.finished) return;
+
+    const votes = gameState.votes || {};
+    const totalPlayers = activePlayers.length - 1;
+
+    if (Object.keys(votes).length === totalPlayers && totalPlayers > 0) {
+      const values = Object.values(votes);
+
+      const yes = values.filter(v => v).length;
+      const no = values.filter(v => !v).length;
+
+      const result = yes > no;
+
+      updateDoc(doc(db, 'parties', code), {
+        gameState: {
+          ...gameState,
+          finished: true,
+          winner: result ? gameState.guessingPlayer : null,
+          loser: !result ? gameState.guessingPlayer : null,
+        }
+      });
+    }
+  }, [gameState, activePlayers]);
+
+  const guessingPlayer = activePlayers.find(
+    p => p.uid === gameState?.guessingPlayer
+  );
+
+  useEffect(() => {
+    if (!gameState?.finished) return;
+
+    const timeout = setTimeout(() => {
+      updateDoc(doc(db, 'parties', code), {
+        gameState: null
+      });
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [gameState]);
+
   return (
     <View style={styles.container}>
-      {/* Flecha regresar */}
+
+      {gameState?.isGuessing &&
+        !gameState?.finished &&
+        gameState.guessingPlayer !== currentUid && (
+          <Modal transparent animationType="fade">
+            <View style={{
+              flex:1,
+              backgroundColor:'rgba(0,0,0,0.7)',
+              justifyContent:'center',
+              alignItems:'center'
+            }}>
+              <View style={{
+                backgroundColor:'white',
+                padding:20,
+                borderRadius:10,
+                alignItems:'center'
+              }}>
+                <Text style={{fontWeight:'bold', fontSize:16}}>
+                  {guessingPlayer?.username || 'Player'} is guessing...
+                </Text>
+
+                <Text style={{marginVertical:10}}>
+                  Vote if he is right or wrong
+                </Text>
+
+                <View style={{flexDirection:'row'}}>
+                  <TouchableOpacity onPress={() => vote(true)} style={{margin:10}}>
+                    <Text style={{fontSize:30}}>✔️</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={() => vote(false)} style={{margin:10}}>
+                    <Text style={{fontSize:30}}>❌</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+      )}
+
+      {gameState?.finished && (
+        <Modal transparent animationType="fade">
+          <View style={{
+            flex:1,
+            justifyContent:'center',
+            alignItems:'center',
+            backgroundColor:'rgba(0,0,0,0.7)'
+          }}>
+            <View style={{backgroundColor:'white', padding:20, borderRadius:10}}>
+              <Text style={{fontSize:18, fontWeight:'bold'}}>
+                {gameState.winner
+                  ? `${guessingPlayer?.username} has won!`
+                  : 'Wrong guess!'}
+              </Text>
+            </View>
+          </View>
+        </Modal>
+      )}
+
+      {/* UI ORIGINAL */}
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={styles.backButton}
@@ -28,22 +159,16 @@ export default function TowerOfNerds({ navigation, route }) {
         <Ionicons name="arrow-back" size={26} color="white" />
       </TouchableOpacity>
 
-      {/* Header fijo */}
       <View style={styles.header}>
         <Image
           source={require('../Imagenes/logo.png')}
           style={styles.logo}
         />
-
         <Text style={styles.title}>Tower of Nerds</Text>
       </View>
 
-      {/* Scroll */}
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Tabla de jugadores y categorías */}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        
         <View style={styles.playersContainer}>
           <View style={styles.playersHeader}>
             <Text style={styles.headerText}>Name</Text>
@@ -52,10 +177,12 @@ export default function TowerOfNerds({ navigation, route }) {
 
           {activePlayers.map((player) => (
             <View key={player.uid} style={styles.playerRow}>
+              
               <Text
                 style={[
                   styles.playerName,
                   player.uid === currentUid && styles.currentPlayer,
+                  player.eliminated && { color: 'red' } 
                 ]}
               >
                 {player.username}
@@ -63,31 +190,34 @@ export default function TowerOfNerds({ navigation, route }) {
               </Text>
 
               <Text style={styles.playerCategory}>
-                {player.uid === currentUid ? '????' : player.category || '....' }
+                {player.eliminated
+                  ? player.category 
+                  : player.uid === currentUid
+                    ? '????'
+                    : player.category || '....'}
               </Text>
+
             </View>
           ))}
         </View>
 
-        {/* Torre */}
-        <View style={styles.towerContainer}>
-          <Text style={styles.towerTitle}>YOUR TOWER</Text>
-
-          <View style={styles.tower}>
-            {tower.map((item, index) => (
-              <TextInput key={index} style={styles.towerInput}value={item}
-                onChangeText={(text) => updateTowerItem(text, index)}
-                placeholder={`Character ${index + 1}`}
-                placeholderTextColor="#94A3B8"
-              />
-            ))}
-          </View>
+        <View style={styles.tower}>
+          {tower.map((item, index) => (
+            <TextInput
+              key={index}
+              style={styles.towerInput}
+              placeholder={`Character ${index + 1}`}
+              value={item}
+              onChangeText={(text) => updateTowerItem(text, index)}
+            />
+          ))}
         </View>
 
-        {/* Botón Guess */}
-        <TouchableOpacity style={styles.guessButton}>
-          <Text style={styles.guessButtonText}>Guess</Text>
+        <TouchableOpacity onPress={handleGuess} style={[styles.guessButton,gameState?.isGuessing && { opacity: 0.5 }]}
+          disabled={gameState?.isGuessing}>
+          <Text>Guess</Text>
         </TouchableOpacity>
+
       </ScrollView>
     </View>
   );
@@ -201,7 +331,7 @@ const styles = StyleSheet.create({
   },
 
   towerInput: {
-    width: '100%',
+    width: 200,
     height: 50,
     borderWidth: 2,
     borderColor: '#E5E7EB',
