@@ -202,7 +202,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
       alignItems:"center",
       borderRadius:10,
       marginTop:-10,
-      position: "relative", //todo sigue normal, pero es necesario para poder usar el index z
+      position: "relative", 
       zIndex: 1,
     },
     title:{

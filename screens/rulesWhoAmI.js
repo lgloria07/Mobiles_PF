@@ -5,6 +5,7 @@ import { auth, db } from '../services/firebase';
 import { collection, doc, setDoc, updateDoc, arrayUnion, getDoc, arrayRemove, deleteDoc} from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
 import { Ionicons } from '@expo/vector-icons';
+import { charactersWho } from '../data/charactersWho';
 //Import hooks
 import usePartyPlayers from '../hooks/usePartyPlayers';
 
@@ -15,6 +16,56 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
       const { code } = route.params;
       const { activePlayers } = usePartyPlayers(code);
       const currentUid = auth.currentUser?.uid;
+
+      const startGame = async () => {
+        try {
+          const partyRef = doc(db, 'parties', code);
+          const partySnap = await getDoc(partyRef);
+
+          if (!partySnap.exists()) return;
+
+          const data = partySnap.data();
+          const members = data.members || [];
+
+          // Mezclar personajes
+          const shuffled = [...charactersWho].sort(() => 0.5 - Math.random());
+
+          // Tomar 30
+          const selectedCharacters = shuffled.slice(0, 30);
+
+          // Asignar 1 personaje a cada jugador
+          for (let i = 0; i < members.length; i++) {
+            const uid = members[i];
+
+            const playerRef = doc(db, 'parties', code, 'players', uid);
+
+            await setDoc(playerRef, {
+              character: selectedCharacters[i % selectedCharacters.length]
+            }, { merge: true });
+          }
+
+          // Guardar pool global (para mostrar opciones)
+          await updateDoc(partyRef, {
+            status: 'in_progress',
+            game: 'whoami',
+            charactersPool: selectedCharacters
+          });
+
+          navigation.navigate('whoAmI', { code });
+
+        } catch (error) {
+          console.error('Error starting game: ', error);
+        }
+      };
+
+      const characterImages = {
+        "Mario": require('../Imagenes/whoCharacters/mario.png'),
+        "Luigi": require('../Imagenes/whoCharacters/luigi.png'),
+        "Peach": require('../Imagenes/whoCharacters/peach.png'),
+        "Bowser": require('../Imagenes/whoCharacters/bowser.png'),
+        "Yoshi": require('../Imagenes/whoCharacters/yoshi.png'),
+        "Toad": require('../Imagenes/whoCharacters/toad.png'),
+      };
 
       return (  
           <View style={styles.container}>
@@ -87,7 +138,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
               </View>
 
               {/* Boton Cerrar Sesión */}
-              <TouchableOpacity style={styles.start}>
+              <TouchableOpacity onPress={startGame} style={styles.start}>
                 <Text style={{color:'white',fontSize:20,fontWeight:'bold'}}>Start</Text>
               </TouchableOpacity>
           
