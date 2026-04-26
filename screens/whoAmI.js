@@ -16,7 +16,7 @@ export default function WhoAmI({ navigation, route }) {
   // ESTADOS CORRECTOS
   const [characters, setCharacters] = useState([]);
   const [myCharacter, setMyCharacter] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [discarded, setDiscarded] = useState([]);
 
   // ESCUCHAR POOL DE PERSONAJES
   useEffect(() => {
@@ -48,12 +48,18 @@ export default function WhoAmI({ navigation, route }) {
   }, [code, currentUid]);
 
   const handleSelect = (char) => {
-    setSelected(char.name);
+    setDiscarded((prev) => {
+      if (prev.includes(char.name)) {
+        // ya estaba → quitarlo
+        return prev.filter(name => name !== char.name);
+      } else {
+        return [...prev, char.name];
+      }
+    });
   };
 
   const handleGuess = () => {
-    if (!selected) return;
-    console.log("Selected character:", selected);
+    console.log("Selected character");
   };
 
   return (
@@ -118,11 +124,17 @@ export default function WhoAmI({ navigation, route }) {
               key={index}
               style={[
                 styles.card,
-                selected === char.name && styles.selectedCard
+                discarded.includes(char.name) && styles.discardedCard
               ]}
               onPress={() => handleSelect(char)}
             >
-              <Image source={characterImages[char.name] || require('../Imagenes/who.png')}style={styles.imagePlaceholder}/>
+              <Image
+                source={
+                  characterImages[char.name] ||
+                  require('../Imagenes/who.png')
+                }
+                style={styles.imagePlaceholder}
+              />
 
               <Text style={styles.cardText}>
                 {char.name}
@@ -133,12 +145,8 @@ export default function WhoAmI({ navigation, route }) {
 
         {/* BOTÓN */}
         <TouchableOpacity
-          style={[
-            styles.guessButton,
-            !selected && { opacity: 0.5 }
-          ]}
+          style={[styles.guessButton]}
           onPress={handleGuess}
-          disabled={!selected}
         >
           <Text style={styles.guessText}>Guess</Text>
         </TouchableOpacity>
@@ -251,10 +259,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
+  discardedCard: {
+    borderWidth: 2,
+    borderColor: '#FF4C4C',
+    opacity: 0.3,
+  },
+
   card: {
     width: '47%',
     aspectRatio: 1,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#1E293B', 
     borderRadius: 12,
     marginBottom: 12,
     padding: 10,
