@@ -1,17 +1,31 @@
 import { useState, useEffect } from 'react';
-import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView} from 'react-native';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView,Modal} from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import { auth, db } from '../services/firebase';
 import usePartyPlayers from '../hooks/usePartyPlayers';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { characterImages } from '../data/characterImages';
+import { useIsFocused } from '@react-navigation/native';
 
 export default function WhoAmI({ navigation, route }) {
   const { code } = route.params;
 
   const { activePlayers } = usePartyPlayers(code);
   const currentUid = auth.currentUser?.uid;
+  const currentPlayer = activePlayers.find(p => p.uid === currentUid);
+  const isHost = currentPlayer?.isHost;
+
+  const [gameState, setGameState] = useState(null);
+  const [hasNavigated, setHasNavigated] = useState(false);
+  const isFocused = useIsFocused();
+
+  // RESETEAR NAVEGACIÓN SI SALGO DEL JUEGO
+  useEffect(() => {
+    if (!gameState) {
+      setHasNavigated(false);
+    }
+  }, [gameState]);
 
   // ESTADOS CORRECTOS
   const [characters, setCharacters] = useState([]);
@@ -25,6 +39,7 @@ export default function WhoAmI({ navigation, route }) {
 
       const data = snap.data();
       setCharacters(data.charactersPool || []);
+      setGameState(data.gameState || null);
     });
 
     return unsub;
@@ -58,13 +73,177 @@ export default function WhoAmI({ navigation, route }) {
     });
   };
 
-  const handleGuess = () => {
-    console.log("Selected character");
+  const handleGuess = async () => {
+    if (gameState?.isGuessing) return;
+
+    await updateDoc(doc(db, 'parties', code), {
+      gameState: {
+        isGuessing: true,
+        guessingPlayer: currentUid,
+        votes: {},
+        finished: false,
+      },
+    });
   };
+
+  const vote = async (value) => {
+    if (currentUid === gameState?.guessingPlayer) return;
+    if (gameState?.votes?.[currentUid] !== undefined) return;
+
+    await updateDoc(doc(db, 'parties', code), {
+      [`gameState.votes.${currentUid}`]: value,
+    });
+  };
+
+  useEffect(() => {
+    const finishVoting = async () => {
+      if (!gameState || !gameState.isGuessing || gameState.finished) return;
+
+      const votes = gameState.votes || {};
+      const totalPlayers = activePlayers.length - 1;
+
+      if (Object.keys(votes).length === totalPlayers && totalPlayers > 0) {
+        const values = Object.values(votes);
+
+        const yes = values.filter(v => v).length;
+        const no = values.filter(v => !v).length;
+
+        const result = yes > no;
+
+        await updateDoc(doc(db, 'parties', code), {
+          gameState: {
+            ...gameState,
+            finished: true,
+            winner: result ? gameState.guessingPlayer : null,
+            loser: !result ? gameState.guessingPlayer : null,
+          }
+        });
+      }
+    };
+
+    finishVoting();
+  }, [gameState, activePlayers]);
+
+  const guessingPlayer = activePlayers.find(
+    p => p.uid === gameState?.guessingPlayer
+  );
+
+  useEffect(() => {
+    if (!gameState?.finished || !isHost) return;
+
+    const timeout = setTimeout(async () => {
+      if (gameState.winner) {
+        await updateDoc(doc(db, 'parties', code), {
+          status: 'waiting',
+          game: null,
+          gameState: null,
+        });
+      } else {
+        await updateDoc(doc(db, 'parties', code), {
+          gameState: null
+        });
+      }
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [gameState, isHost]);
+
+  useEffect(() => {
+    if (!isFocused) return;
+    if (gameState?.finished && gameState?.winner && !hasNavigated) {
+      setHasNavigated(true);
+
+      const timeout = setTimeout(() => {
+        navigation.replace('gameSelection', { code });
+      }, 3000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [gameState, hasNavigated, isFocused, navigation, code]);
 
   return (
     <View style={styles.container}>
+      {/* MODAL DE ESPERA DE VOTOS */}
+      {gameState?.isGuessing &&
+        !gameState?.finished &&
+        gameState.guessingPlayer === currentUid && (
+          <Modal transparent animationType="fade">
+            <View style={{
+              flex:1,
+              justifyContent:'center',
+              alignItems:'center',
+              backgroundColor:'rgba(0,0,0,0.7)'
+            }}>
+              <View style={{
+                backgroundColor:'white',
+                padding:20,
+                borderRadius:10,
+                alignItems:'center'
+              }}>
+                <Text style={{fontSize:18, fontWeight:'bold'}}>
+                  Waiting for votes...
+                </Text>
+              </View>
+            </View>
+          </Modal>
+        )}
 
+      {gameState?.isGuessing &&
+        !gameState?.finished &&
+        gameState.guessingPlayer !== currentUid && (
+          <Modal transparent animationType="fade">
+            <View style={{
+              flex:1,
+              backgroundColor:'rgba(0,0,0,0.7)',
+              justifyContent:'center',
+              alignItems:'center'
+            }}>
+              <View style={{
+                backgroundColor:'white',
+                padding:20,
+                borderRadius:10,
+                alignItems:'center'
+              }}>
+                <Text style={{fontWeight:'bold', fontSize:16}}>
+                  {guessingPlayer?.username || 'Player'} is guessing...
+                </Text>
+
+                <Text style={{marginVertical:10}}>
+                  Vote if {guessingPlayer?.username || 'this player'} is correct
+                </Text>
+
+                <View style={{flexDirection:'row'}}>
+                  <TouchableOpacity onPress={() => vote(true)} style={{margin:10}}>
+                    <Text style={{fontSize:30}}>✔️</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={() => vote(false)} style={{margin:10}}>
+                    <Text style={{fontSize:30}}>❌</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
+
+        {gameState?.finished && (
+          <Modal transparent animationType="fade">
+            <View style={{
+              flex:1,
+              justifyContent:'center',
+              alignItems:'center',
+              backgroundColor:'rgba(0,0,0,0.7)'
+            }}>
+              <View style={{backgroundColor:'white', padding:20, borderRadius:10}}>
+                <Text style={{fontSize:18, fontWeight:'bold'}}>
+                  {gameState.winner
+                    ? `${guessingPlayer?.username} has won!`
+                    : `${guessingPlayer?.username} guessed wrong!`}
+                </Text>
+              </View>
+            </View>
+          </Modal>
+        )}
       {/* BACK */}
       <TouchableOpacity
         onPress={() => navigation.goBack()}
@@ -145,8 +324,9 @@ export default function WhoAmI({ navigation, route }) {
 
         {/* BOTÓN */}
         <TouchableOpacity
-          style={[styles.guessButton]}
+          style={[styles.guessButton, gameState?.isGuessing && { opacity: 0.5 }]}
           onPress={handleGuess}
+          disabled={gameState?.isGuessing}
         >
           <Text style={styles.guessText}>Guess</Text>
         </TouchableOpacity>
