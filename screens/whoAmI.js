@@ -188,6 +188,7 @@ export default function WhoAmI({ navigation, route }) {
           </Modal>
         )}
 
+      {/* Modal para que el jugador adivine */}
       {gameState?.isGuessing &&
         !gameState?.finished &&
         gameState.guessingPlayer !== currentUid && (
@@ -226,6 +227,7 @@ export default function WhoAmI({ navigation, route }) {
           </Modal>
         )}
 
+        {/* Modal de resultados */}
         {gameState?.finished && (
           <Modal transparent animationType="fade">
             <View style={{
@@ -424,7 +426,8 @@ const styles = StyleSheet.create({
     height: 120,
     backgroundColor: '#374151',
     borderRadius: 10,
-    marginVertical: 10
+    marginVertical: 10,
+    resizeMode: 'contain'
   },
 
   myCharacterName: {
