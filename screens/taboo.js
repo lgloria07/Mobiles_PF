@@ -17,16 +17,21 @@ import {
   useRef
 } from 'react';
 
-import { auth, db } from '../services/firebase';
+import { auth, db }
+from '../services/firebase';
 
-import usePartyPlayers from '../hooks/usePartyPlayers';
+import usePartyPlayers
+from '../hooks/usePartyPlayers';
 
 import {
   getRandomCategory,
-  getRandomWord
-} from '../utils/charadesHelpers';
+  getRandomCard
+} from '../utils/tabooHelpers';
 
-export default function Charades({ route, navigation }) {
+export default function Taboo({
+  route,
+  navigation
+}) {
 
   const { code } = route.params;
 
@@ -39,11 +44,9 @@ export default function Charades({ route, navigation }) {
   const [gameState, setGameState] =
     useState(null);
 
-  // LOCAL TIMER
   const [localTimer, setLocalTimer] =
     useState(0);
 
-  // REFS
   const intervalRef =
     useRef(null);
 
@@ -77,9 +80,9 @@ export default function Charades({ route, navigation }) {
 
     return unsub;
 
-  }, [code]);
+  }, []);
 
-  // KEEP REF UPDATED
+  // UPDATE REF
   useEffect(() => {
 
     gameStateRef.current =
@@ -96,26 +99,21 @@ export default function Charades({ route, navigation }) {
   const isMyTurn =
     currentUid === gameState?.currentPlayer;
 
-  // START TIMER ONLY ON NEW TURN
-    useEffect(() => {
+  // SYNC TIMER
+  useEffect(() => {
 
-      if (!gameState) return;
+    if (!gameState) return;
 
-      if (!gameState.started) return;
+    if (!gameState.started) return;
 
-      // ONLY INITIALIZE TIMER
-      // WHEN IT IS STILL 0
-      setLocalTimer(prev => {
+    setLocalTimer(
+      gameState.timer
+    );
 
-        if (prev > 0) return prev;
-
-        return gameState.timer;
-      });
-
-    }, [
-      gameState?.currentTurn,
-      gameState?.started
-    ]);
+  }, [
+    gameState?.currentTurn,
+    gameState?.started
+  ]);
 
   // TIMER
   useEffect(() => {
@@ -126,10 +124,8 @@ export default function Charades({ route, navigation }) {
 
     if (gameState.finished) return;
 
-    // ONLY HOST CONTROLS TIMER
     if (!isHost) return;
 
-    // PREVENT MULTIPLE INTERVALS
     if (intervalRef.current) return;
 
     intervalRef.current =
@@ -140,7 +136,6 @@ export default function Charades({ route, navigation }) {
           const next =
             prev - 1;
 
-          // TIMER ENDED
           if (next <= 0) {
 
             clearInterval(
@@ -150,13 +145,13 @@ export default function Charades({ route, navigation }) {
             intervalRef.current =
               null;
 
-            // CHANGE TURN
             endTurn();
 
             return 0;
           }
 
           return next;
+
         });
 
       }, 1000);
@@ -187,8 +182,8 @@ export default function Charades({ route, navigation }) {
     const category =
       getRandomCategory();
 
-    const word =
-      getRandomWord(category, []);
+    const card =
+      getRandomCard(category, []);
 
     await updateDoc(
       doc(db, 'parties', code),
@@ -197,10 +192,12 @@ export default function Charades({ route, navigation }) {
         gameState: {
           ...gameState,
           started: true,
-          timer: 2,
+          timer: 60,
           currentCategory: category,
-          currentWord: word,
-          usedWords: [word]
+          currentWord: card.word,
+          forbiddenWords:
+            card.forbidden,
+          usedWords: [card.word]
         }
       }
     );
@@ -209,11 +206,10 @@ export default function Charades({ route, navigation }) {
   // CORRECT
   const correct = async () => {
 
-    // DO NOTHING IF TIME ENDED
     if (localTimer <= 0) return;
 
-    const nextWord =
-      getRandomWord(
+    const nextCard =
+      getRandomCard(
         gameState.currentCategory,
         gameState.usedWords
       );
@@ -223,15 +219,20 @@ export default function Charades({ route, navigation }) {
       {
 
         'gameState.currentWord':
-          nextWord,
+          nextCard.word,
+
+        'gameState.forbiddenWords':
+          nextCard.forbidden,
 
         'gameState.usedWords': [
           ...gameState.usedWords,
-          nextWord
+          nextCard.word
         ],
 
         [`gameState.scores.${currentUid}`]:
-          (gameState.scores?.[currentUid] || 0) + 1
+          (gameState.scores?.[
+            currentUid
+          ] || 0) + 1
       }
     );
   };
@@ -239,11 +240,10 @@ export default function Charades({ route, navigation }) {
   // SKIP
   const skip = async () => {
 
-    // DO NOTHING IF TIME ENDED
     if (localTimer <= 0) return;
 
-    const nextWord =
-      getRandomWord(
+    const nextCard =
+      getRandomCard(
         gameState.currentCategory,
         gameState.usedWords
       );
@@ -253,11 +253,14 @@ export default function Charades({ route, navigation }) {
       {
 
         'gameState.currentWord':
-          nextWord,
+          nextCard.word,
+
+        'gameState.forbiddenWords':
+          nextCard.forbidden,
 
         'gameState.usedWords': [
           ...gameState.usedWords,
-          nextWord
+          nextCard.word
         ]
       }
     );
@@ -277,7 +280,7 @@ export default function Charades({ route, navigation }) {
     const totalTurns =
       activePlayers.length * 3;
 
-    // GAME FINISHED
+    // FINISHED
     if (nextTurn >= totalTurns) {
 
       await updateDoc(
@@ -304,57 +307,50 @@ export default function Charades({ route, navigation }) {
           currentTurn: nextTurn,
           currentPlayer: nextPlayer.uid,
           started: false,
-          timer: 2,
+          timer: 60,
           currentCategory: null,
           currentWord: null,
+          forbiddenWords: [],
           usedWords: []
         }
       }
     );
   };
 
-  // EXIT GAME
+  // EXIT
   const exitGame = async () => {
 
-    try {
+    if (intervalRef.current) {
 
-      if (intervalRef.current) {
+      clearInterval(
+        intervalRef.current
+      );
 
-        clearInterval(
-          intervalRef.current
-        );
-
-        intervalRef.current =
-          null;
-      }
-
-      // ONLY HOST RESETS GAME
-      if (isHost) {
-
-        await updateDoc(
-          doc(db, 'parties', code),
-          {
-            status: 'waiting',
-            game: null,
-            gameState: null
-          }
-        );
-      }
-
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'gameSelection',
-            params: { code }
-          }
-        ]
-      });
-
-    } catch (error) {
-
-      console.log(error);
+      intervalRef.current =
+        null;
     }
+
+    if (isHost) {
+
+      await updateDoc(
+        doc(db, 'parties', code),
+        {
+          status: 'waiting',
+          game: null,
+          gameState: null
+        }
+      );
+    }
+
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: 'gameSelection',
+          params: { code }
+        }
+      ]
+    });
   };
 
   // LOADING
@@ -369,20 +365,26 @@ export default function Charades({ route, navigation }) {
     );
   }
 
-  // FINAL SCREEN
+  // FINAL
   if (gameState.finished) {
 
     const sortedPlayers =
-      [...activePlayers].sort((a, b) => {
+      [...activePlayers].sort(
+        (a, b) => {
 
-        const scoreA =
-          gameState.scores?.[a.uid] || 0;
+          const scoreA =
+            gameState.scores?.[
+              a.uid
+            ] || 0;
 
-        const scoreB =
-          gameState.scores?.[b.uid] || 0;
+          const scoreB =
+            gameState.scores?.[
+              b.uid
+            ] || 0;
 
-        return scoreB - scoreA;
-      });
+          return scoreB - scoreA;
+        }
+      );
 
     return (
       <View style={styles.container}>
@@ -403,7 +405,9 @@ export default function Charades({ route, navigation }) {
             </Text>
 
             <Text style={styles.scorePoints}>
-              {gameState.scores?.[player.uid] || 0}
+              {gameState.scores?.[
+                player.uid
+              ] || 0}
             </Text>
 
           </View>
@@ -424,7 +428,7 @@ export default function Charades({ route, navigation }) {
     );
   }
 
-  // WAITING SCREEN
+  // WAITING
   if (!isMyTurn) {
 
     return (
@@ -442,7 +446,7 @@ export default function Charades({ route, navigation }) {
     );
   }
 
-  // READY SCREEN
+  // READY
   if (!gameState.started) {
 
     return (
@@ -462,7 +466,7 @@ export default function Charades({ route, navigation }) {
         </Text>
 
         <Text style={styles.passText}>
-          Pass the phone to the player!
+          Pass the phone!
         </Text>
 
         <TouchableOpacity
@@ -498,6 +502,22 @@ export default function Charades({ route, navigation }) {
           {gameState.currentWord}
         </Text>
 
+        <Text style={styles.tabooTitle}>
+          Forbidden words:
+        </Text>
+
+        {gameState.forbiddenWords?.map(
+          (word, index) => (
+
+            <Text
+              key={index}
+              style={styles.forbidden}
+            >
+              {word}
+            </Text>
+          )
+        )}
+
       </View>
 
       <View style={styles.buttons}>
@@ -505,7 +525,6 @@ export default function Charades({ route, navigation }) {
         <TouchableOpacity
           style={styles.skip}
           onPress={skip}
-          disabled={localTimer <= 0}
         >
 
           <Text style={styles.buttonEmoji}>
@@ -517,7 +536,6 @@ export default function Charades({ route, navigation }) {
         <TouchableOpacity
           style={styles.correct}
           onPress={correct}
-          disabled={localTimer <= 0}
         >
 
           <Text style={styles.buttonEmoji}>
@@ -536,10 +554,23 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#63A9E9',
+    backgroundColor: '#14213b',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+  },
+
+  title: {
+    color: 'white',
+    fontSize: 40,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+
+  waiting: {
+    color: 'white',
+    fontSize: 25,
+    marginBottom: 20,
   },
 
   round: {
@@ -547,13 +578,6 @@ const styles = StyleSheet.create({
     fontSize: 25,
     marginBottom: 30,
     fontWeight: 'bold'
-  },
-
-  title: {
-    color: 'white',
-    fontSize: 45,
-    fontWeight: 'bold',
-    marginBottom: 20,
   },
 
   passText: {
@@ -572,7 +596,7 @@ const styles = StyleSheet.create({
   },
 
   readyText: {
-    color: '#5B2C83',
+    color: '#14213b',
     fontSize: 35,
     fontWeight: 'bold'
   },
@@ -586,25 +610,37 @@ const styles = StyleSheet.create({
 
   category: {
     color: 'white',
-    fontSize: 28,
-    marginBottom: 40,
+    fontSize: 24,
+    marginBottom: 20,
     fontWeight: 'bold'
   },
 
   wordCard: {
-    width: '85%',
-    height: 250,
+    width: '90%',
     backgroundColor: 'white',
     borderRadius: 25,
-    justifyContent: 'center',
+    padding: 25,
     alignItems: 'center',
   },
 
   word: {
-    fontSize: 42,
+    fontSize: 40,
     fontWeight: 'bold',
-    color: '#5B2C83',
-    textAlign: 'center'
+    color: '#14213b',
+    marginBottom: 20,
+  },
+
+  tabooTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#863535'
+  },
+
+  forbidden: {
+    fontSize: 22,
+    marginBottom: 8,
+    color: '#444'
   },
 
   buttons: {
@@ -636,12 +672,6 @@ const styles = StyleSheet.create({
     fontSize: 45,
   },
 
-  waiting: {
-    color: 'white',
-    fontSize: 25,
-    marginBottom: 20,
-  },
-
   scoreRow: {
     width: '80%',
     flexDirection: 'row',
@@ -660,6 +690,6 @@ const styles = StyleSheet.create({
   scorePoints: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#5B2C83'
+    color: '#14213b'
   }
 });

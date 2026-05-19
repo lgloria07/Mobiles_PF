@@ -12,6 +12,7 @@ import RulesTaboo from './screens/rulesTaboo';
 import Tower from './screens/tower';
 import WhoAmI from './screens/whoAmI';
 import Charades from './screens/Charades';
+import Taboo from './screens/taboo';
 
 const Stack = createNativeStackNavigator();
 
@@ -75,6 +76,11 @@ export default function App() {
         <Stack.Screen 
           name="charades" 
           component={Charades} 
+        />
+
+        <Stack.Screen 
+          name="taboo" 
+          component={Taboo} 
         />
 
       </Stack.Navigator>
