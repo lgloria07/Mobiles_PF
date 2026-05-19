@@ -11,6 +11,7 @@ import RulesWhoAmI from './screens/rulesWhoAmI';
 import RulesTaboo from './screens/rulesTaboo';
 import Tower from './screens/tower';
 import WhoAmI from './screens/whoAmI';
+import Charades from './screens/Charades';
 
 const Stack = createNativeStackNavigator();
 
@@ -69,6 +70,11 @@ export default function App() {
         <Stack.Screen 
           name="whoAmI" 
           component={WhoAmI} 
+        />
+
+        <Stack.Screen 
+          name="charades" 
+          component={Charades} 
         />
 
       </Stack.Navigator>

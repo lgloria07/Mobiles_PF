@@ -82,7 +82,7 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
             }
 
             if (data.game === "charades") {
-              navigation.navigate("charades", { code });
+              navigation.replace("charades", { code });
             }
 
             if (data.game === "taboo") {

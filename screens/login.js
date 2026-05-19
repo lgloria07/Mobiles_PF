@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   messageContainer:{
     width:"80%",
-    marginTop:-55,
+    height:40, 
     marginBottom:20,
     alignItems:"center",
     justifyContent:"center",
