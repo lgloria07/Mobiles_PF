@@ -30,13 +30,25 @@ export default function Charades({ route, navigation }) {
 
   const { code } = route.params;
 
-  const { activePlayers } = usePartyPlayers(code);
+  const { activePlayers } =
+    usePartyPlayers(code);
 
-  const currentUid = auth.currentUser?.uid;
+  const currentUid =
+    auth.currentUser?.uid;
 
-  const [gameState, setGameState] = useState(null);
+  const [gameState, setGameState] =
+    useState(null);
 
-  const intervalRef = useRef(null);
+  // LOCAL TIMER
+  const [localTimer, setLocalTimer] =
+    useState(0);
+
+  // REFS
+  const intervalRef =
+    useRef(null);
+
+  const gameStateRef =
+    useRef(null);
 
   const currentPlayer =
     activePlayers.find(
@@ -57,14 +69,25 @@ export default function Charades({ route, navigation }) {
 
         const data = snap.data();
 
-        setGameState(data.gameState || null);
+        setGameState(
+          data.gameState || null
+        );
       }
     );
 
     return unsub;
 
-  }, []);
+  }, [code]);
 
+  // KEEP REF UPDATED
+  useEffect(() => {
+
+    gameStateRef.current =
+      gameState;
+
+  }, [gameState]);
+
+  // PLAYER INFO
   const playingPlayer =
     activePlayers.find(
       p => p.uid === gameState?.currentPlayer
@@ -73,58 +96,85 @@ export default function Charades({ route, navigation }) {
   const isMyTurn =
     currentUid === gameState?.currentPlayer;
 
+  // SYNC TIMER ONLY WHEN TURN STARTS
+  useEffect(() => {
+
+    if (!gameState) return;
+
+    if (!gameState.started) return;
+
+    // ONLY SET TIMER WHEN A NEW TURN STARTS
+    setLocalTimer(
+      gameState.timer
+    );
+
+  }, [
+    gameState?.currentTurn,
+    gameState?.started
+  ]);
+
   // TIMER
   useEffect(() => {
 
+    if (!gameState) return;
+
+    if (!gameState.started) return;
+
+    if (gameState.finished) return;
+
+    // ONLY HOST CONTROLS TIMER
     if (!isHost) return;
-
-    if (!gameState?.started) return;
-
-    if (gameState?.finished) return;
 
     // PREVENT MULTIPLE INTERVALS
     if (intervalRef.current) return;
 
-    intervalRef.current = setInterval(async () => {
+    intervalRef.current =
+      setInterval(() => {
 
-      const currentTimer =
-        gameState?.timer || 0;
+        setLocalTimer(prev => {
 
-      // END TURN
-      if (currentTimer <= 1) {
+          const next =
+            prev - 1;
 
-        clearInterval(intervalRef.current);
+          // TIMER ENDED
+          if (next <= 0) {
 
-        intervalRef.current = null;
+            clearInterval(
+              intervalRef.current
+            );
 
-        await endTurn();
+            intervalRef.current =
+              null;
 
-        return;
-      }
+            // CHANGE TURN
+            endTurn();
 
-      await updateDoc(
-        doc(db, 'parties', code),
-        {
-          'gameState.timer':
-            currentTimer - 1
-        }
-      );
+            return 0;
+          }
 
-    }, 1000);
+          return next;
+        });
+
+      }, 1000);
 
     return () => {
 
       if (intervalRef.current) {
 
-        clearInterval(intervalRef.current);
+        clearInterval(
+          intervalRef.current
+        );
 
-        intervalRef.current = null;
+        intervalRef.current =
+          null;
       }
     };
 
   }, [
+    gameState?.currentTurn,
     gameState?.started,
-    gameState?.finished
+    gameState?.finished,
+    isHost
   ]);
 
   // START TURN
@@ -155,6 +205,9 @@ export default function Charades({ route, navigation }) {
   // CORRECT
   const correct = async () => {
 
+    // DO NOTHING IF TIME ENDED
+    if (localTimer <= 0) return;
+
     const nextWord =
       getRandomWord(
         gameState.currentCategory,
@@ -182,6 +235,9 @@ export default function Charades({ route, navigation }) {
   // SKIP
   const skip = async () => {
 
+    // DO NOTHING IF TIME ENDED
+    if (localTimer <= 0) return;
+
     const nextWord =
       getRandomWord(
         gameState.currentCategory,
@@ -206,8 +262,13 @@ export default function Charades({ route, navigation }) {
   // END TURN
   const endTurn = async () => {
 
+    const currentState =
+      gameStateRef.current;
+
+    if (!currentState) return;
+
     const nextTurn =
-      gameState.currentTurn + 1;
+      currentState.currentTurn + 1;
 
     const totalTurns =
       activePlayers.length * 3;
@@ -235,7 +296,7 @@ export default function Charades({ route, navigation }) {
       {
 
         gameState: {
-          ...gameState,
+          ...currentState,
           currentTurn: nextTurn,
           currentPlayer: nextPlayer.uid,
           started: false,
@@ -255,9 +316,12 @@ export default function Charades({ route, navigation }) {
 
       if (intervalRef.current) {
 
-        clearInterval(intervalRef.current);
+        clearInterval(
+          intervalRef.current
+        );
 
-        intervalRef.current = null;
+        intervalRef.current =
+          null;
       }
 
       // ONLY HOST RESETS GAME
@@ -417,7 +481,7 @@ export default function Charades({ route, navigation }) {
     <View style={styles.container}>
 
       <Text style={styles.timer}>
-        {gameState.timer}
+        {localTimer}
       </Text>
 
       <Text style={styles.category}>
@@ -437,6 +501,7 @@ export default function Charades({ route, navigation }) {
         <TouchableOpacity
           style={styles.skip}
           onPress={skip}
+          disabled={localTimer <= 0}
         >
 
           <Text style={styles.buttonEmoji}>
@@ -448,6 +513,7 @@ export default function Charades({ route, navigation }) {
         <TouchableOpacity
           style={styles.correct}
           onPress={correct}
+          disabled={localTimer <= 0}
         >
 
           <Text style={styles.buttonEmoji}>
