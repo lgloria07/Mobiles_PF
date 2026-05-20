@@ -264,7 +264,7 @@ export const categoriesCharades = {
     "Lobster"
   ],
 
-  Actions: [
+  "Actions (Act)": [
     "Running",
     "Swimming",
     "Sleeping",

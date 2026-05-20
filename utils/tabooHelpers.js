@@ -1,31 +1,27 @@
-import { categoriesTaboo } from '../data/categoriesTaboo';
-
-export const getRandomCategory = () => {
-
-  const keys = Object.keys(categoriesTaboo);
-
-  return keys[
-    Math.floor(Math.random() * keys.length)
-  ];
-};
+import { tabooWords }
+from '../data/categoriesTaboo';
 
 export const getRandomCard = (
-  category,
-  usedWords
+  usedWords = []
 ) => {
 
   const available =
-    categoriesTaboo[category].filter(
+    tabooWords.filter(
       item =>
-        !usedWords.includes(item.word)
+        !usedWords.includes(
+          item.word
+        )
     );
 
   if (available.length === 0) {
 
-    return categoriesTaboo[category][0];
+    return tabooWords[0];
   }
 
   return available[
-    Math.floor(Math.random() * available.length)
+    Math.floor(
+      Math.random() *
+      available.length
+    )
   ];
 };

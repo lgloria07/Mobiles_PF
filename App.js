@@ -12,7 +12,7 @@ import RulesTaboo from './screens/rulesTaboo';
 import Tower from './screens/tower';
 import WhoAmI from './screens/whoAmI';
 import Charades from './screens/Charades';
-import Taboo from './screens/taboo';
+import Taboo from './screens/Taboo';
 
 const Stack = createNativeStackNavigator();
 

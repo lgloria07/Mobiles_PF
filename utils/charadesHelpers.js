@@ -1,22 +1,47 @@
-import { categoriesCharades } from "../data/categoriesCharades";
+import { categoriesCharades }
+from '../data/categoriesCharades';
 
 export const getRandomCategory = () => {
 
-  const keys = Object.keys(categoriesCharades);
+  const keys =
+    Object.keys(categoriesCharades);
 
-  return keys[Math.floor(Math.random() * keys.length)];
+  return keys[
+    Math.floor(
+      Math.random() * keys.length
+    )
+  ];
 };
 
-export const getRandomWord = (category, usedWords = []) => {
+export const getRandomWord = (
+  category,
+  usedWords
+) => {
+
+  const words =
+    categoriesCharades[category];
+
+  if (!words) return null;
 
   const available =
-    categoriesCharades[category].filter(
-      word => !usedWords.includes(word)
+    words.filter(
+      word =>
+        !usedWords.includes(word)
     );
 
-  if (available.length === 0) return null;
+  // SI YA SE USARON TODAS
+  if (available.length === 0) {
+
+    return words[
+      Math.floor(
+        Math.random() * words.length
+      )
+    ];
+  }
 
   return available[
-    Math.floor(Math.random() * available.length)
+    Math.floor(
+      Math.random() * available.length
+    )
   ];
 };
