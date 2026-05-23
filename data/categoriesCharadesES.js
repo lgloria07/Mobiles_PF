@@ -1,6 +1,6 @@
 // categoriesCharadesES.js
 
-export const categoriesCharadesES = {
+export const categoriesCharades = {
 
   Peliculas: [
     "Titanic",

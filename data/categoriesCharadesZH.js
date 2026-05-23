@@ -1,6 +1,6 @@
 // categoriesCharadesZH.js
 
-export const categoriesCharadesZH = {
+export const categoriesCharades = {
 
   电影: [
     "Titanic",
