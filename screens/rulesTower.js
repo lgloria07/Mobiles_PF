@@ -8,7 +8,8 @@ import {
   Text,
   View,
   Image,
-  TouchableOpacity
+  TouchableOpacity,
+  ScrollView
 } from 'react-native';
 
 /* FIRESTORE */
@@ -328,7 +329,13 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
 
   return (
 
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{
+        alignItems: 'center',
+        paddingBottom: 40,
+      }}
+    >
 
       {/* BACK BUTTON */}
       <TouchableOpacity
@@ -582,7 +589,7 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
 
       </TouchableOpacity>
 
-    </View>
+    </ScrollView>
   );
 }
 
@@ -590,10 +597,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    flexDirection:'column',
     backgroundColor: '#14213b',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
   },
 
   container1:{

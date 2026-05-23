@@ -5,7 +5,8 @@ import {
   Text,
   View,
   Image,
-  TouchableOpacity
+  TouchableOpacity,
+  ScrollView
 } from 'react-native';
 
 /* Conexion con fireStore */
@@ -64,6 +65,8 @@ export default function GameSelection({ navigation, route }) {
       tower: 'Tower of Nerds',
       taboo: 'Taboo',
       whoAmI: 'Who am I?',
+      onlineGames: 'ONLINE GAMES',
+      offlineGames: 'OFFLINE GAMES',
     },
 
     Español: {
@@ -77,6 +80,8 @@ export default function GameSelection({ navigation, route }) {
       tower: 'Torre de Nerds',
       taboo: 'Tabú',
       whoAmI: '¿Quién soy?',
+      onlineGames: 'JUEGOS ONLINE',
+      offlineGames: 'JUEGOS OFFLINE',
     },
 
     Français: {
@@ -90,6 +95,8 @@ export default function GameSelection({ navigation, route }) {
       tower: 'Tour des Nerds',
       taboo: 'Tabou',
       whoAmI: 'Qui suis-je?',
+      onlineGames: 'JEUX EN LIGNE',
+      offlineGames: 'JEUX HORS LIGNE',
     },
 
     中文: {
@@ -103,6 +110,8 @@ export default function GameSelection({ navigation, route }) {
       tower: '书呆子塔',
       taboo: '禁忌词',
       whoAmI: '我是谁？',
+      onlineGames: '在线游戏',
+      offlineGames: '离线游戏',
     }
   };
 
@@ -211,19 +220,27 @@ export default function GameSelection({ navigation, route }) {
   }, [code, navigation]);
 
   return (
-    <View style={styles.container}>
+
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{
+        alignItems: 'center',
+        paddingBottom: 40,
+      }}
+      showsVerticalScrollIndicator={false}
+    >
 
       {/* Boton Settings */}
-        <TouchableOpacity
-          style={styles.settingsButton}
-          onPress={() => navigation.navigate('settings')}
-        >
-          <Ionicons
-            name="settings-outline"
-            size={30}
-            color="white"
-          />
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.settingsButton}
+        onPress={() => navigation.navigate('settings')}
+      >
+        <Ionicons
+          name="settings-outline"
+          size={30}
+          color="white"
+        />
+      </TouchableOpacity>
 
       {/* Flecha return */}
       <TouchableOpacity
@@ -335,79 +352,43 @@ export default function GameSelection({ navigation, route }) {
         {texts[language].partyCode}: {code}
       </Text>
 
-      {/* Juegos */}
-      <View style={styles.container2}>
+      {/* ONLINE GAMES */}
+      <View style={styles.sectionContainer}>
 
-        {/* Fila 1 */}
-        <View style={styles.container21}>
+        <View style={styles.sectionDivider}>
+          <View style={styles.line} />
 
-          {/* Charades */}
-          <View style={styles.container211}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              { fontSize: textSize - 1 }
+            ]}
+          >
+            {texts[language].onlineGames}
+          </Text>
 
-            <View style={styles.container2111}>
-              <Image
-                source={require('../Imagenes/charades.png')}
-                style={styles.image}
-              />
-            </View>
+          <View style={styles.line} />
+        </View>
 
-            <View style={styles.container2112}>
-
-              <Text
-                style={{
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: textSize,
-                  marginTop: -30,
-                  textAlign: 'center'
-                }}
-              >
-                {texts[language].charades}
-              </Text>
-
-              <TouchableOpacity
-                onPress={charades}
-                style={[
-                  styles.join,
-                  !isHost && { opacity: 0.4 }
-                ]}
-                disabled={!isHost}
-              >
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: textSize - 2,
-                    fontWeight: 'bold'
-                  }}
-                >
-                  {texts[language].play}
-                </Text>
-              </TouchableOpacity>
-
-            </View>
-
-          </View>
+        <View style={styles.gamesRow}>
 
           {/* Tower */}
-          <View style={styles.container211}>
+          <View style={styles.gameCard}>
 
-            <View style={styles.container2111}>
+            <View style={styles.imageContainer}>
               <Image
                 source={require('../Imagenes/tower.png')}
                 style={styles.image}
               />
             </View>
 
-            <View style={styles.container2112}>
+            <View style={styles.gameInfo}>
 
               <Text
-                style={{
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: textSize,
-                  marginTop: -30,
-                  textAlign: 'center'
-                }}
+                style={[
+                  styles.gameTitle,
+                  { fontSize: textSize }
+                ]}
               >
                 {texts[language].tower}
               </Text>
@@ -435,37 +416,29 @@ export default function GameSelection({ navigation, route }) {
 
           </View>
 
-        </View>
+          {/* Who Am I */}
+          <View style={styles.gameCard}>
 
-        {/* Fila 2 */}
-        <View style={styles.container21}>
-
-          {/* Taboo */}
-          <View style={styles.container211}>
-
-            <View style={styles.container2111}>
+            <View style={styles.imageContainer}>
               <Image
-                source={require('../Imagenes/taboo.png')}
+                source={require('../Imagenes/who.png')}
                 style={styles.image}
               />
             </View>
 
-            <View style={styles.container2112}>
+            <View style={styles.gameInfo}>
 
               <Text
-                style={{
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: textSize,
-                  marginTop: -30,
-                  textAlign: 'center'
-                }}
+                style={[
+                  styles.gameTitle,
+                  { fontSize: textSize }
+                ]}
               >
-                {texts[language].taboo}
+                {texts[language].whoAmI}
               </Text>
 
               <TouchableOpacity
-                onPress={taboo}
+                onPress={whoAmI}
                 style={[
                   styles.join,
                   !isHost && { opacity: 0.4 }
@@ -487,32 +460,97 @@ export default function GameSelection({ navigation, route }) {
 
           </View>
 
-          {/* Who am I */}
-          <View style={styles.container211}>
+        </View>
 
-            <View style={styles.container2111}>
+      </View>
+
+      {/* OFFLINE GAMES */}
+      <View style={styles.sectionContainer}>
+
+        <View style={styles.sectionDivider}>
+          <View style={styles.line} />
+
+          <Text
+            style={[
+              styles.sectionTitle,
+              { fontSize: textSize - 1 }
+            ]}
+          >
+            {texts[language].offlineGames}
+          </Text>
+
+          <View style={styles.line} />
+        </View>
+
+        <View style={styles.gamesRow}>
+
+          {/* Charades */}
+          <View style={styles.gameCard}>
+
+            <View style={styles.imageContainer}>
               <Image
-                source={require('../Imagenes/who.png')}
+                source={require('../Imagenes/charades.png')}
                 style={styles.image}
               />
             </View>
 
-            <View style={styles.container2112}>
+            <View style={styles.gameInfo}>
 
               <Text
-                style={{
-                  color: "white",
-                  fontWeight: "bold",
-                  fontSize: textSize,
-                  marginTop: -30,
-                  textAlign: 'center'
-                }}
+                style={[
+                  styles.gameTitle,
+                  { fontSize: textSize }
+                ]}
               >
-                {texts[language].whoAmI}
+                {texts[language].charades}
               </Text>
 
               <TouchableOpacity
-                onPress={whoAmI}
+                onPress={charades}
+                style={[
+                  styles.join,
+                  !isHost && { opacity: 0.4 }
+                ]}
+                disabled={!isHost}
+              >
+                <Text
+                  style={{
+                    color: 'white',
+                    fontSize: textSize - 2,
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {texts[language].play}
+                </Text>
+              </TouchableOpacity>
+
+            </View>
+
+          </View>
+
+          {/* Taboo */}
+          <View style={styles.gameCard}>
+
+            <View style={styles.imageContainer}>
+              <Image
+                source={require('../Imagenes/taboo.png')}
+                style={styles.image}
+              />
+            </View>
+
+            <View style={styles.gameInfo}>
+
+              <Text
+                style={[
+                  styles.gameTitle,
+                  { fontSize: textSize }
+                ]}
+              >
+                {texts[language].taboo}
+              </Text>
+
+              <TouchableOpacity
+                onPress={taboo}
                 style={[
                   styles.join,
                   !isHost && { opacity: 0.4 }
@@ -554,7 +592,7 @@ export default function GameSelection({ navigation, route }) {
         </Text>
       </TouchableOpacity>
 
-    </View>
+    </ScrollView>
   );
 }
 
@@ -562,10 +600,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    flexDirection: 'column',
     backgroundColor: '#0F172A',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
   },
 
   container1: {
@@ -582,15 +617,6 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-  },
-
-  container111: {
-    height: "30%",
-    width: "50%",
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: -10,
-    marginBottom: 30,
   },
 
   container12: {
@@ -634,7 +660,62 @@ const styles = StyleSheet.create({
 
   code: {
     color: '#C2C6CE',
-    marginBottom: 5,
+    marginBottom: 15,
+    fontWeight: 'bold',
+  },
+
+  sectionContainer: {
+    width: "100%",
+    marginTop: 10,
+    alignItems: "center",
+  },
+
+  sectionDivider: {
+    width: "90%",
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    marginTop: 10,
+  },
+
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ffffff40",
+  },
+
+  sectionTitle: {
+    color: "#34d36e",
+    fontWeight: "bold",
+    marginHorizontal: 10,
+  },
+
+  gamesRow: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 20,
+  },
+
+  gameCard: {
+    width: "45%",
+    height: 280,
+    backgroundColor: "#1E293B",
+    borderRadius: 20,
+  },
+
+  imageContainer: {
+    width: "100%",
+    height: "60%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  gameInfo: {
+    width: "100%",
+    height: "40%",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   image: {
@@ -645,41 +726,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
 
-  container2: {
-    height: "60%",
-    width: "100%",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: 'center',
-  },
-
-  container21: {
-    width: "100%",
-    height: "50%",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: 'space-around',
-  },
-
-  container211: {
-    width: "45%",
-    height: "90%",
-    backgroundColor: "#1E293B",
-    borderRadius: 20,
-  },
-
-  container2111: {
-    width: "100%",
-    height: "60%",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  container2112: {
-    width: "100%",
-    height: "40%",
-    alignItems: "center",
-    justifyContent: "center",
+  gameTitle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: 'center',
+    marginTop: -20,
   },
 
   signOut: {
@@ -693,7 +744,7 @@ const styles = StyleSheet.create({
   },
 
   join: {
-    height: "35%",
+    height: 40,
     width: "70%",
     backgroundColor: '#33A548',
     borderRadius: 8,
@@ -711,6 +762,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 50,
   },
+
   settingsButton: {
     position: 'absolute',
     top: 60,
