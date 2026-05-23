@@ -13,11 +13,14 @@ import Tower from './screens/tower';
 import WhoAmI from './screens/whoAmI';
 import Charades from './screens/Charades';
 import Taboo from './screens/Taboo';
+import SettingsScreen from './screens/SettingsScreen';
+import { SettingsProvider } from './services/SettingsContext';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
+  <SettingsProvider>
     <NavigationContainer>
       <Stack.Navigator 
       initialRouteName="login"
@@ -82,9 +85,14 @@ export default function App() {
           name="taboo" 
           component={Taboo} 
         />
+        <Stack.Screen 
+          name="settings" 
+          component={SettingsScreen}
+        />
 
       </Stack.Navigator>
-    </NavigationContainer>
-  );
+        </NavigationContainer>
+      </SettingsProvider>
+    );
 }
 

@@ -1,10 +1,48 @@
-import { categoriesCharades }
-from '../data/categoriesCharades';
+import {
+  categoriesCharades as categoriesCharadesEN
+} from '../data/categoriesCharadesEN';
 
-export const getRandomCategory = () => {
+import {
+  categoriesCharades as categoriesCharadesES
+} from '../data/categoriesCharadesES';
+
+import {
+  categoriesCharades as categoriesCharadesFR
+} from '../data/categoriesCharadesFR';
+
+import {
+  categoriesCharades as categoriesCharadesZH
+} from '../data/categoriesCharadesZH';
+
+const getCategoriesByLanguage = (
+  language
+) => {
+
+  switch (language) {
+
+    case 'Español':
+      return categoriesCharadesES;
+
+    case 'Français':
+      return categoriesCharadesFR;
+
+    case '中文':
+      return categoriesCharadesZH;
+
+    default:
+      return categoriesCharadesEN;
+  }
+};
+
+export const getRandomCategory = (
+  language
+) => {
+
+  const categories =
+    getCategoriesByLanguage(language);
 
   const keys =
-    Object.keys(categoriesCharades);
+    Object.keys(categories);
 
   return keys[
     Math.floor(
@@ -15,11 +53,15 @@ export const getRandomCategory = () => {
 
 export const getRandomWord = (
   category,
-  usedWords
+  usedWords,
+  language
 ) => {
 
+  const categories =
+    getCategoriesByLanguage(language);
+
   const words =
-    categoriesCharades[category];
+    categories[category];
 
   if (!words) return null;
 
@@ -29,7 +71,7 @@ export const getRandomWord = (
         !usedWords.includes(word)
     );
 
-  // SI YA SE USARON TODAS
+  // IF ALL WORDS USED
   if (available.length === 0) {
 
     return words[

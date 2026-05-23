@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 
 import {
   StyleSheet,
@@ -23,6 +23,9 @@ from '@expo/vector-icons';
 import usePartyPlayers
 from '../hooks/usePartyPlayers';
 
+import { SettingsContext }
+from '../services/SettingsContext';
+
 export default function RulesTaboo({
   navigation,
   route
@@ -32,6 +35,13 @@ export default function RulesTaboo({
     useState('');
 
   const { code } = route.params;
+
+  /* SETTINGS */
+  const {
+    language,
+    textSize,
+    titleSize
+  } = useContext(SettingsContext);
 
   // ACTIVE PLAYERS
   const { activePlayers } =
@@ -47,6 +57,145 @@ export default function RulesTaboo({
 
   const isHost =
     currentPlayer?.isHost || false;
+
+  /* TRANSLATIONS */
+  const texts = {
+
+    English: {
+
+      subtitle: 'Taboo - Rules',
+
+      activePlayers: 'Active Players',
+
+      you: '(You)',
+
+      gameTitle: 'Taboo',
+
+      rules:
+`You will receive a word and 5 forbidden words.
+
+Help your team guess the main word without saying the forbidden ones.
+
+Press CHECK if guessed.
+
+Press X to skip.
+
+The player with the most points wins.`,
+
+      playersInfo:
+        'Number of players: 2 - 5',
+
+      timeInfo:
+        'Approx time: 1 minute per round',
+
+      start: 'Start',
+
+      error:
+        'Error starting game.',
+    },
+
+    Español: {
+
+      subtitle: 'Taboo - Reglas',
+
+      activePlayers:
+        'Jugadores Activos',
+
+      you: '(Tú)',
+
+      gameTitle: 'Taboo',
+
+      rules:
+`Recibirás una palabra y 5 palabras prohibidas.
+
+Ayuda a tu equipo a adivinar la palabra principal sin decir las prohibidas.
+
+Presiona CHECK si adivinaron.
+
+Presiona X para saltar.
+
+El jugador con más puntos gana.`,
+
+      playersInfo:
+        'Número de jugadores: 2 - 5',
+
+      timeInfo:
+        'Tiempo aproximado: 1 minuto por ronda',
+
+      start: 'Iniciar',
+
+      error:
+        'Error al iniciar el juego.',
+    },
+
+    Français: {
+
+      subtitle: 'Taboo - Règles',
+
+      activePlayers:
+        'Joueurs Actifs',
+
+      you: '(Vous)',
+
+      gameTitle: 'Taboo',
+
+      rules:
+`Vous recevrez un mot et 5 mots interdits.
+
+Aidez votre équipe à deviner le mot principal sans dire les mots interdits.
+
+Appuyez sur CHECK si trouvé.
+
+Appuyez sur X pour passer.
+
+Le joueur avec le plus de points gagne.`,
+
+      playersInfo:
+        'Nombre de joueurs: 2 - 5',
+
+      timeInfo:
+        'Temps approximatif: 1 minute par manche',
+
+      start: 'Commencer',
+
+      error:
+        'Erreur lors du démarrage du jeu.',
+    },
+
+    中文: {
+
+      subtitle: '禁忌词 - 规则',
+
+      activePlayers:
+        '在线玩家',
+
+      you: '(你)',
+
+      gameTitle: '禁忌词',
+
+      rules:
+`你会获得一个单词和5个禁止词。
+
+帮助你的队伍猜出主要单词，但不能说出禁止词。
+
+猜对时按 CHECK。
+
+按 X 跳过。
+
+得分最高的玩家获胜。`,
+
+      playersInfo:
+        '玩家人数: 2 - 5',
+
+      timeInfo:
+        '预计时间: 每轮1分钟',
+
+      start: '开始',
+
+      error:
+        '启动游戏时出错。',
+    }
+  };
 
   // START GAME
   const startGame = async () => {
@@ -88,7 +237,7 @@ export default function RulesTaboo({
       );
 
       setMensaje(
-        'Error starting game.'
+        texts[language].error
       );
     }
   };
@@ -153,12 +302,28 @@ export default function RulesTaboo({
             }}
           />
 
-          <Text style={styles.title}>
+          <Text
+            style={[
+              styles.title,
+              {
+                fontSize:
+                  titleSize - 12
+              }
+            ]}
+          >
             Green Monster
           </Text>
 
-          <Text style={styles.subtitle}>
-            Taboo - Rules
+          <Text
+            style={[
+              styles.subtitle,
+              {
+                fontSize:
+                  textSize - 3
+              }
+            ]}
+          >
+            {texts[language].subtitle}
           </Text>
 
         </View>
@@ -171,10 +336,14 @@ export default function RulesTaboo({
             <Text
               style={{
                 fontWeight: 'bold',
-                fontSize: 13
+                fontSize:
+                  textSize - 3
               }}
             >
-              Active Players
+              {
+                texts[language]
+                  .activePlayers
+              }
             </Text>
 
           </View>
@@ -200,15 +369,19 @@ export default function RulesTaboo({
                           : 'white',
 
                       fontWeight: 'bold',
-                      fontSize: 12,
+
+                      fontSize:
+                        textSize - 4,
                     }}
                   >
 
                     {player.username}
 
-                    {player.uid === currentUid
-                      ? " (You)"
-                      : ""}
+                    {
+                      player.uid === currentUid
+                      ? ` ${texts[language].you}`
+                      : ""
+                    }
 
                   </Text>
                 )
@@ -233,8 +406,19 @@ export default function RulesTaboo({
             style={styles.image}
           />
 
-          <Text style={styles.gameTitle}>
-            Taboo
+          <Text
+            style={[
+              styles.gameTitle,
+              {
+                fontSize:
+                  textSize
+              }
+            ]}
+          >
+            {
+              texts[language]
+                .gameTitle
+            }
           </Text>
 
         </View>
@@ -242,41 +426,48 @@ export default function RulesTaboo({
         {/* RIGHT */}
         <View style={styles.right}>
 
-          <Text style={styles.rules}>
-
-            You will receive a word
-            and 5 forbidden words.
-
-            {"\n\n"}
-
-            Help your team guess
-            the main word without
-            saying the forbidden ones.
-
-            {"\n\n"}
-
-            Press CHECK if guessed.
-
-            {"\n\n"}
-
-            Press X to skip.
-
-            {"\n\n"}
-
-            The player with the most
-            points wins.
-
+          <Text
+            style={[
+              styles.rules,
+              {
+                fontSize:
+                  textSize - 2
+              }
+            ]}
+          >
+            {texts[language].rules}
           </Text>
 
           <View style={styles.line} />
 
-          <Text style={styles.info}>
-            Number of players: 2 - 5
+          <Text
+            style={[
+              styles.info,
+              {
+                fontSize:
+                  textSize - 3
+              }
+            ]}
+          >
+            {
+              texts[language]
+                .playersInfo
+            }
           </Text>
 
-          <Text style={styles.info}>
-            Approx time:
-            1 minute per round
+          <Text
+            style={[
+              styles.info,
+              {
+                fontSize:
+                  textSize - 3
+              }
+            ]}
+          >
+            {
+              texts[language]
+                .timeInfo
+            }
           </Text>
 
         </View>
@@ -286,7 +477,15 @@ export default function RulesTaboo({
       {/* ERROR */}
       {mensaje !== '' && (
 
-        <Text style={styles.error}>
+        <Text
+          style={[
+            styles.error,
+            {
+              fontSize:
+                textSize - 1
+            }
+          ]}
+        >
           {mensaje}
         </Text>
 
@@ -307,11 +506,12 @@ export default function RulesTaboo({
         <Text
           style={{
             color: 'white',
-            fontSize: 20,
+            fontSize:
+              textSize + 2,
             fontWeight: 'bold'
           }}
         >
-          Start
+          {texts[language].start}
         </Text>
 
       </TouchableOpacity>
@@ -377,13 +577,11 @@ const styles = StyleSheet.create({
 
   title: {
     color: '#34d36e',
-    fontSize: 15,
     fontWeight: 'bold',
   },
 
   subtitle: {
     color: '#676E7A',
-    fontSize: 11,
     fontWeight: 'bold',
   },
 
@@ -410,9 +608,9 @@ const styles = StyleSheet.create({
 
   gameTitle: {
     color: "#C2C6CE",
-    fontSize: 15,
     marginTop: 10,
     fontWeight: "bold",
+    textAlign:'center',
   },
 
   right: {
@@ -423,7 +621,6 @@ const styles = StyleSheet.create({
 
   rules: {
     color: "#C2C6CE",
-    fontSize: 13,
     lineHeight: 20,
   },
 
@@ -436,7 +633,6 @@ const styles = StyleSheet.create({
 
   info: {
     color: "#C2C6CE",
-    fontSize: 12,
     marginTop: 5,
   },
 
