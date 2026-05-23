@@ -1,7 +1,8 @@
 import React, {
   useState,
   useEffect,
-  useRef
+  useRef,
+  useContext
 } from 'react';
 
 import {
@@ -24,12 +25,125 @@ import {
   db
 } from '../services/firebase';
 
+import {
+  SettingsContext
+} from '../services/SettingsContext';
+
 export default function Taboo({
   navigation,
   route
 }) {
 
   const { code } = route.params;
+
+  // SETTINGS
+  const settings =
+    useContext(SettingsContext);
+
+  const language =
+    settings?.language || 'English';
+
+  const textSize =
+    settings?.textSize || 20;
+
+  const titleSize =
+    settings?.titleSize || 40;
+
+  // TRANSLATIONS
+  const texts = {
+
+    English: {
+      title: 'TABOO',
+      howManyRounds: 'HOW MANY ROUNDS?',
+      startGame: 'START GAME',
+      gameOver: 'GAME OVER',
+      team1Wins: 'TEAM 1 WINS!',
+      team2Wins: 'TEAM 2 WINS!',
+      draw: 'DRAW!',
+      playAgain: 'PLAY AGAIN',
+      exit: 'EXIT',
+      roundSummary: 'ROUND SUMMARY',
+      nextTeam2: 'NEXT: TEAM 2',
+      nextTeam1: 'NEXT: TEAM 1',
+      finalResults: 'FINAL RESULTS',
+      continue: 'CONTINUE',
+      passPhone: 'PASS THE PHONE',
+      ready: 'READY',
+      team: 'TEAM',
+      round: 'ROUND',
+      forbiddenWords: 'Forbidden words:'
+    },
+
+    Español: {
+      title: 'TABÚ',
+      howManyRounds: '¿CUÁNTAS RONDAS?',
+      startGame: 'INICIAR',
+      gameOver: 'FIN DEL JUEGO',
+      team1Wins: '¡GANA EL EQUIPO 1!',
+      team2Wins: '¡GANA EL EQUIPO 2!',
+      draw: '¡EMPATE!',
+      playAgain: 'JUGAR OTRA VEZ',
+      exit: 'SALIR',
+      roundSummary: 'RESUMEN',
+      nextTeam2: 'SIGUE: EQUIPO 2',
+      nextTeam1: 'SIGUE: EQUIPO 1',
+      finalResults: 'RESULTADOS',
+      continue: 'CONTINUAR',
+      passPhone: 'PASA EL TELÉFONO',
+      ready: 'LISTO',
+      team: 'EQUIPO',
+      round: 'RONDA',
+      forbiddenWords: 'Palabras prohibidas:'
+    },
+
+    Français: {
+      title: 'TABOU',
+      howManyRounds: 'COMBIEN DE MANCHES ?',
+      startGame: 'COMMENCER',
+      gameOver: 'FIN DU JEU',
+      team1Wins: 'ÉQUIPE 1 GAGNE !',
+      team2Wins: 'ÉQUIPE 2 GAGNE !',
+      draw: 'ÉGALITÉ !',
+      playAgain: 'REJOUER',
+      exit: 'QUITTER',
+      roundSummary: 'RÉSUMÉ',
+      nextTeam2: 'SUIVANT : ÉQUIPE 2',
+      nextTeam1: 'SUIVANT : ÉQUIPE 1',
+      finalResults: 'RÉSULTATS',
+      continue: 'CONTINUER',
+      passPhone: 'PASSE LE TÉLÉPHONE',
+      ready: 'PRÊT',
+      team: 'ÉQUIPE',
+      round: 'MANCHE',
+      forbiddenWords: 'Mots interdits :'
+    },
+
+    中文: {
+      title: '禁语猜词',
+      howManyRounds: '多少回合？',
+      startGame: '开始游戏',
+      gameOver: '游戏结束',
+      team1Wins: '1队获胜！',
+      team2Wins: '2队获胜！',
+      draw: '平局！',
+      playAgain: '再玩一次',
+      exit: '退出',
+      roundSummary: '回合总结',
+      nextTeam2: '下一队：2队',
+      nextTeam1: '下一队：1队',
+      finalResults: '最终结果',
+      continue: '继续',
+      passPhone: '传递手机',
+      ready: '准备好了',
+      team: '队伍',
+      round: '回合',
+      forbiddenWords: '禁用词：'
+    }
+  };
+
+  const t =
+    texts[language] ||
+    texts.English;
 
   // TIMER
   const [timer, setTimer] =
@@ -105,7 +219,6 @@ export default function Taboo({
 
         setTimer(prev => {
 
-          // TURN FINISHED
           if (prev <= 1) {
 
             clearInterval(
@@ -118,19 +231,21 @@ export default function Taboo({
           }
 
           return prev - 1;
+
         });
 
       }, 1000);
   };
 
-  // NEW CARD
+  // GENERATE CARD
   const generateCard = (
     currentUsedWords
   ) => {
 
     const card =
       getRandomCard(
-        currentUsedWords
+        currentUsedWords,
+        language
       );
 
     if (!card) return;
@@ -153,7 +268,10 @@ export default function Taboo({
   const prepareTurn = () => {
 
     const firstCard =
-      getRandomCard([]);
+      getRandomCard(
+        [],
+        language
+      );
 
     if (!firstCard) return;
 
@@ -197,7 +315,6 @@ export default function Taboo({
 
     setShowScoreboard(false);
 
-    // TEAM 1 -> TEAM 2
     if (currentTeam === 1) {
 
       setCurrentTeam(2);
@@ -207,7 +324,6 @@ export default function Taboo({
       return;
     }
 
-    // BOTH TEAMS PLAYED
     if (currentRound >= selectedRounds) {
 
       setGameFinished(true);
@@ -215,7 +331,6 @@ export default function Taboo({
       return;
     }
 
-    // NEXT ROUND
     setCurrentRound(prev => prev + 1);
 
     setCurrentTeam(1);
@@ -260,7 +375,6 @@ export default function Taboo({
 
     try {
 
-      // RESET FIREBASE PARTY STATE
       await updateDoc(
         doc(db, 'parties', code),
         {
@@ -291,7 +405,6 @@ export default function Taboo({
 
     if (timer <= 0) return;
 
-    // TEAM 1 SCORE
     if (currentTeam === 1) {
 
       setTeam1Score(prev => prev + 1);
@@ -316,18 +429,28 @@ export default function Taboo({
     );
   };
 
-  // INITIAL SETUP
+  // INITIAL SCREEN
   if (!setupFinished) {
 
     return (
       <View style={styles.container}>
 
-        <Text style={styles.title}>
-          TABOO
+        <Text
+          style={[
+            styles.title,
+            { fontSize: titleSize + 8 }
+          ]}
+        >
+          {t.title}
         </Text>
 
-        <Text style={styles.roundText}>
-          HOW MANY ROUNDS?
+        <Text
+          style={[
+            styles.roundText,
+            { fontSize: textSize + 6 }
+          ]}
+        >
+          {t.howManyRounds}
         </Text>
 
         <View style={styles.roundButtons}>
@@ -350,6 +473,9 @@ export default function Taboo({
               <Text
                 style={[
                   styles.roundOptionText,
+                  {
+                    fontSize: textSize + 2
+                  },
                   selectedRounds === num && {
                     color: '#14213b'
                   }
@@ -368,8 +494,13 @@ export default function Taboo({
           onPress={prepareTurn}
         >
 
-          <Text style={styles.readyText}>
-            START GAME
+          <Text
+            style={[
+              styles.readyText,
+              { fontSize: textSize + 10 }
+            ]}
+          >
+            {t.startGame}
           </Text>
 
         </TouchableOpacity>
@@ -383,19 +514,29 @@ export default function Taboo({
 
     const winner =
       team1Score > team2Score
-        ? 'TEAM 1 WINS!'
+        ? t.team1Wins
         : team2Score > team1Score
-        ? 'TEAM 2 WINS!'
-        : 'DRAW!';
+        ? t.team2Wins
+        : t.draw;
 
     return (
       <View style={styles.container}>
 
-        <Text style={styles.title}>
-          GAME OVER
+        <Text
+          style={[
+            styles.title,
+            { fontSize: titleSize + 6 }
+          ]}
+        >
+          {t.gameOver}
         </Text>
 
-        <Text style={styles.winner}>
+        <Text
+          style={[
+            styles.winner,
+            { fontSize: textSize + 14 }
+          ]}
+        >
           {winner}
         </Text>
 
@@ -403,11 +544,21 @@ export default function Taboo({
 
           <View style={styles.blueTeam}>
 
-            <Text style={styles.teamText}>
-              TEAM 1
+            <Text
+              style={[
+                styles.teamText,
+                { fontSize: textSize + 2 }
+              ]}
+            >
+              {t.team} 1
             </Text>
 
-            <Text style={styles.scoreText}>
+            <Text
+              style={[
+                styles.scoreText,
+                { fontSize: titleSize }
+              ]}
+            >
               {team1Score}
             </Text>
 
@@ -415,11 +566,21 @@ export default function Taboo({
 
           <View style={styles.redTeam}>
 
-            <Text style={styles.teamText}>
-              TEAM 2
+            <Text
+              style={[
+                styles.teamText,
+                { fontSize: textSize + 2 }
+              ]}
+            >
+              {t.team} 2
             </Text>
 
-            <Text style={styles.scoreText}>
+            <Text
+              style={[
+                styles.scoreText,
+                { fontSize: titleSize }
+              ]}
+            >
               {team2Score}
             </Text>
 
@@ -435,8 +596,13 @@ export default function Taboo({
           onPress={resetGame}
         >
 
-          <Text style={styles.readyText}>
-            PLAY AGAIN
+          <Text
+            style={[
+              styles.readyText,
+              { fontSize: textSize + 8 }
+            ]}
+          >
+            {t.playAgain}
           </Text>
 
         </TouchableOpacity>
@@ -446,8 +612,13 @@ export default function Taboo({
           onPress={exitGame}
         >
 
-          <Text style={styles.exitText}>
-            EXIT
+          <Text
+            style={[
+              styles.exitText,
+              { fontSize: textSize + 8 }
+            ]}
+          >
+            {t.exit}
           </Text>
 
         </TouchableOpacity>
@@ -456,29 +627,49 @@ export default function Taboo({
     );
   }
 
-  // SCOREBOARD SCREEN
+  // SCOREBOARD
   if (showScoreboard) {
 
     return (
       <View style={styles.container}>
 
-        <Text style={styles.title}>
-          ROUND SUMMARY
+        <Text
+          style={[
+            styles.title,
+            { fontSize: titleSize }
+          ]}
+        >
+          {t.roundSummary}
         </Text>
 
-        <Text style={styles.roundText}>
-          Round {currentRound}
+        <Text
+          style={[
+            styles.roundText,
+            { fontSize: textSize + 4 }
+          ]}
+        >
+          {t.round} {currentRound}
         </Text>
 
         <View style={styles.scoreContainer}>
 
           <View style={styles.blueTeam}>
 
-            <Text style={styles.teamText}>
-              TEAM 1
+            <Text
+              style={[
+                styles.teamText,
+                { fontSize: textSize + 2 }
+              ]}
+            >
+              {t.team} 1
             </Text>
 
-            <Text style={styles.scoreText}>
+            <Text
+              style={[
+                styles.scoreText,
+                { fontSize: titleSize }
+              ]}
+            >
               {team1Score}
             </Text>
 
@@ -486,11 +677,21 @@ export default function Taboo({
 
           <View style={styles.redTeam}>
 
-            <Text style={styles.teamText}>
-              TEAM 2
+            <Text
+              style={[
+                styles.teamText,
+                { fontSize: textSize + 2 }
+              ]}
+            >
+              {t.team} 2
             </Text>
 
-            <Text style={styles.scoreText}>
+            <Text
+              style={[
+                styles.scoreText,
+                { fontSize: titleSize }
+              ]}
+            >
               {team2Score}
             </Text>
 
@@ -498,13 +699,18 @@ export default function Taboo({
 
         </View>
 
-        <Text style={styles.nextTeamText}>
+        <Text
+          style={[
+            styles.nextTeamText,
+            { fontSize: textSize + 6 }
+          ]}
+        >
           {
             currentTeam === 1
-              ? 'NEXT: TEAM 2'
+              ? t.nextTeam2
               : currentRound >= selectedRounds
-              ? 'FINAL RESULTS'
-              : 'NEXT: TEAM 1'
+              ? t.finalResults
+              : t.nextTeam1
           }
         </Text>
 
@@ -513,8 +719,13 @@ export default function Taboo({
           onPress={nextTurn}
         >
 
-          <Text style={styles.readyText}>
-            CONTINUE
+          <Text
+            style={[
+              styles.readyText,
+              { fontSize: textSize + 8 }
+            ]}
+          >
+            {t.continue}
           </Text>
 
         </TouchableOpacity>
@@ -529,16 +740,31 @@ export default function Taboo({
     return (
       <View style={styles.container}>
 
-        <Text style={styles.roundText}>
-          ROUND {currentRound} / {selectedRounds}
+        <Text
+          style={[
+            styles.roundText,
+            { fontSize: textSize + 6 }
+          ]}
+        >
+          {t.round} {currentRound} / {selectedRounds}
         </Text>
 
-        <Text style={styles.teamTurn}>
-          TEAM {currentTeam}
+        <Text
+          style={[
+            styles.teamTurn,
+            { fontSize: titleSize - 4 }
+          ]}
+        >
+          {t.team} {currentTeam}
         </Text>
 
-        <Text style={styles.passText}>
-          PASS THE PHONE
+        <Text
+          style={[
+            styles.passText,
+            { fontSize: textSize + 2 }
+          ]}
+        >
+          {t.passPhone}
         </Text>
 
         <TouchableOpacity
@@ -546,8 +772,13 @@ export default function Taboo({
           onPress={startTurn}
         >
 
-          <Text style={styles.readyText}>
-            READY
+          <Text
+            style={[
+              styles.readyText,
+              { fontSize: textSize + 8 }
+            ]}
+          >
+            {t.ready}
           </Text>
 
         </TouchableOpacity>
@@ -560,22 +791,42 @@ export default function Taboo({
   return (
     <View style={styles.container}>
 
-      <Text style={styles.teamTurn}>
-        TEAM {currentTeam}
+      <Text
+        style={[
+          styles.teamTurn,
+          { fontSize: titleSize - 4 }
+        ]}
+      >
+        {t.team} {currentTeam}
       </Text>
 
-      <Text style={styles.timer}>
+      <Text
+        style={[
+          styles.timer,
+          { fontSize: titleSize + 20 }
+        ]}
+      >
         {timer}
       </Text>
 
       <View style={styles.wordCard}>
 
-        <Text style={styles.word}>
+        <Text
+          style={[
+            styles.word,
+            { fontSize: titleSize - 2 }
+          ]}
+        >
           {word}
         </Text>
 
-        <Text style={styles.tabooTitle}>
-          Forbidden words:
+        <Text
+          style={[
+            styles.tabooTitle,
+            { fontSize: textSize + 2 }
+          ]}
+        >
+          {t.forbiddenWords}
         </Text>
 
         {forbidden.map(
@@ -583,7 +834,12 @@ export default function Taboo({
 
             <Text
               key={index}
-              style={styles.forbidden}
+              style={[
+                styles.forbidden,
+                {
+                  fontSize: textSize + 2
+                }
+              ]}
             >
               {item}
             </Text>
@@ -634,36 +890,34 @@ const styles = StyleSheet.create({
 
   title: {
     color: 'white',
-    fontSize: 45,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center'
   },
 
   roundText: {
     color: 'white',
-    fontSize: 24,
     marginBottom: 20,
     fontWeight: 'bold'
   },
 
   teamTurn: {
     color: 'white',
-    fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 20,
   },
 
   passText: {
     color: 'white',
-    fontSize: 20,
     marginBottom: 20,
+    textAlign: 'center'
   },
 
   nextTeamText: {
     color: 'white',
-    fontSize: 24,
     fontWeight: 'bold',
     marginTop: 30,
+    textAlign: 'center'
   },
 
   readyButton: {
@@ -674,12 +928,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 30,
+    paddingHorizontal: 15,
   },
 
   readyText: {
     color: '#14213b',
-    fontSize: 35,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
 
   exitButton: {
@@ -690,17 +945,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
+    paddingHorizontal: 15,
   },
 
   exitText: {
     color: 'white',
-    fontSize: 35,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    textAlign: 'center'
   },
 
   timer: {
     color: 'white',
-    fontSize: 70,
     fontWeight: 'bold',
     marginBottom: 20,
   },
@@ -714,23 +969,22 @@ const styles = StyleSheet.create({
   },
 
   word: {
-    fontSize: 40,
     fontWeight: 'bold',
     color: '#14213b',
     marginBottom: 20,
+    textAlign: 'center'
   },
 
   tabooTitle: {
-    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 15,
     color: '#863535'
   },
 
   forbidden: {
-    fontSize: 22,
     marginBottom: 8,
-    color: '#444'
+    color: '#444',
+    textAlign: 'center'
   },
 
   buttons: {
@@ -780,7 +1034,6 @@ const styles = StyleSheet.create({
 
   roundOptionText: {
     color: 'white',
-    fontSize: 24,
     fontWeight: 'bold',
   },
 
@@ -811,21 +1064,19 @@ const styles = StyleSheet.create({
 
   teamText: {
     color: 'white',
-    fontSize: 24,
     fontWeight: 'bold',
   },
 
   scoreText: {
     color: 'white',
-    fontSize: 40,
     fontWeight: 'bold',
     marginTop: 10,
   },
 
   winner: {
     color: 'white',
-    fontSize: 35,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center'
   }
 });
