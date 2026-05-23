@@ -1,4 +1,4 @@
-export const categories = [
+export const categoriesES = [
   "Villanos de Marvel",
   "Villanos de DC",
   "Personajes sin poderes",

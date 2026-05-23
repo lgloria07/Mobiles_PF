@@ -27,8 +27,17 @@ import {
 import { Ionicons }
 from '@expo/vector-icons';
 
-import { categories }
-from '../data/categories';
+import { categoriesEN}
+from '../data/categoriesTowerEN';
+
+import { categoriesES }
+from '../data/categoriesTowerES';
+
+import { categoriesFR }
+from '../data/categoriesTowerFR';
+
+import { categoriesZH }
+from '../data/categoriesTowerZH';
 
 /* HOOKS */
 import usePartyPlayers
@@ -215,6 +224,25 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
         '启动游戏时出错，请重试。',
     }
   };
+  /* CATEGORY LIST BY LANGUAGE */
+  const categoriesByLanguage = {
+
+    English:
+      categoriesEN,
+
+    Español:
+      categoriesES,
+
+    Français:
+      categoriesFR,
+
+    中文:
+      categoriesZH,
+  };
+
+  const selectedCategories =
+    categoriesByLanguage[language] ||
+    categoriesEN;
 
   /* START GAME */
   const startGame = async () => {
@@ -238,7 +266,7 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
 
       /* RANDOM CATEGORIES */
       const shuffled =
-        [...categories]
+        [...selectedCategories]
         .sort(() => 0.5 - Math.random());
 
       for (
