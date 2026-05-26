@@ -1,20 +1,8 @@
 import { useState, useEffect, useContext } from 'react';
-
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity
-} from 'react-native';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView} from 'react-native';
 
 import { auth, db } from '../services/firebase';
-
-import {
-  doc,
-  updateDoc,
-  onSnapshot
-} from 'firebase/firestore';
+import {doc,updateDoc,onSnapshot} from 'firebase/firestore';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -22,35 +10,21 @@ import usePartyPlayers from '../hooks/usePartyPlayers';
 
 import { SettingsContext } from '../services/SettingsContext';
 
-export default function RulesCharades({
-  navigation,
-  route
-}) {
+export default function RulesCharades({navigation,route}) {
 
   const [mensaje, setMensaje] = useState('');
-
   const { code } = route.params;
 
-  /* Context */
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
-  /* Active players */
   const { activePlayers } = usePartyPlayers(code);
 
   const currentUid = auth.currentUser?.uid;
 
-  const currentPlayer =
-    activePlayers.find(
-      p => p.uid === currentUid
-    );
+  const currentPlayer = activePlayers.find( p => p.uid === currentUid);
 
   const isHost = currentPlayer?.isHost || false;
 
-  /* Traducciones */
   const texts = {
 
     English: {
@@ -64,7 +38,7 @@ export default function RulesCharades({
       gameTitle: 'Charades',
 
       rules:
-`Each player will have 3 turns.
+      `Each player will have 3 turns.
 
 Place the phone on your forehead while the other players help you guess the word.
 
@@ -94,7 +68,7 @@ The player with the most points wins.`,
       gameTitle: 'Charadas',
 
       rules:
-`Cada jugador tendrá 3 turnos.
+      `Cada jugador tendrá 3 turnos.
 
 Coloca el teléfono en tu frente mientras los otros jugadores te ayudan a adivinar la palabra.
 
@@ -124,7 +98,7 @@ El jugador con más puntos gana.`,
       gameTitle: 'Charades',
 
       rules:
-`Chaque joueur aura 3 tours.
+      `Chaque joueur aura 3 tours.
 
 Placez le téléphone sur votre front pendant que les autres joueurs vous aident à deviner le mot.
 
@@ -154,7 +128,7 @@ Le joueur avec le plus de points gagne.`,
       gameTitle: '你演我猜',
 
       rules:
-`每位玩家将有3个回合。
+      `每位玩家将有3个回合。
 
 将手机放在额头上，其他玩家会帮助你猜单词。
 
@@ -174,140 +148,75 @@ Le joueur avec le plus de points gagne.`,
     }
   };
 
-  /* START GAME */
   const startGame = async () => {
 
     try {
 
       const firstPlayer = activePlayers[0];
 
-      await updateDoc(
-        doc(db, 'parties', code),
-        {
-
+      await updateDoc(doc(db, 'parties', code),{
           status: 'in_progress',
-
           game: 'charades',
-
-          gameState: {
-
+          gameState: { //Iniciamos un juego desde cero
             currentTurn: 0,
-
             currentPlayer: firstPlayer.uid,
-
             started: false,
-
             finished: false,
-
             timer: 2,
-
             currentCategory: null,
-
             currentWord: null,
-
             usedWords: [],
-
             scores: {}
           }
         }
       );
 
     } catch (error) {
-
       console.log(
         'Error starting charades:',
         error
       );
-
       setMensaje(
         texts[language].error
       );
     }
   };
 
-  /* AUTO NAVIGATION */
+  // Escuchamos cambios en la partida para redirigir al juego cuando comience
   useEffect(() => {
-
-    const unsub = onSnapshot(
-
-      doc(db, 'parties', code),
-
-      (snap) => {
-
+    const unsub = onSnapshot(doc(db, 'parties', code),(snap) => { 
         if (!snap.exists()) return;
-
         const data = snap.data();
-
-        if (
-          data.status === 'in_progress' &&
-          data.game === 'charades'
-        ) {
-
-          navigation.replace(
-            'charades',
-            { code }
-          );
+        if (data.status === 'in_progress' && data.game === 'charades') {
+          navigation.replace('charades',{ code });
         }
       }
     );
-
     return unsub;
-
   }, []);
 
   return (
 
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
 
       {/* BACK BUTTON */}
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
-
+      <TouchableOpacity onPress={() => navigation.goBack()}style={styles.backButton}>
+        <Ionicons name="arrow-back" size={26} color="white"/>
       </TouchableOpacity>
 
-      {/* HEADER */}
+      {/* Contenedor principal */}
       <View style={styles.container1}>
 
-        {/* LEFT */}
+        {/* Parte izquierda */}
         <View style={styles.container11}>
 
-          <Image
-            source={require('../Imagenes/logo.png')}
-            style={{
-              width: "100%",
-              height: "60%"
-            }}
-          />
+          <Image source={require('../Imagenes/logo.png')}style={{width: "100%",height: "60%"}}/>
 
-          <Text
-            style={[
-              styles.title,
-              {
-                fontSize:
-                  titleSize - 12
-              }
-            ]}
-          >
+          <Text style={[styles.title,{fontSize:titleSize - 12}]}>
             Green Monster
           </Text>
 
-          <Text
-            style={[
-              styles.subtitle,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
+          <Text style={[styles.subtitle,{fontSize:textSize - 3}]}>
             {texts[language].subtitle}
           </Text>
 
@@ -318,55 +227,19 @@ Le joueur avec le plus de points gagne.`,
 
           <View style={styles.container121}>
 
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontSize: textSize - 3
-              }}
-            >
-              {
-                texts[language]
-                  .activePlayers
-              }
-            </Text>
+            <Text style={{fontWeight: 'bold',fontSize: textSize - 3}}>{texts[language].activePlayers}</Text>
 
           </View>
 
           <View style={styles.container122}>
 
             <View
-              style={{
-                flexDirection: 'column',
-                marginTop: 8
-              }}
-            >
+              style={{flexDirection: 'column',marginTop: 8}}>
 
-              {activePlayers.map(
-                (player) => (
-
-                <Text
-                  key={player.uid}
-                  style={{
-                    color:
-                      player.isHost
-                        ? '#863535'
-                        : 'white',
-
-                    fontWeight: 'bold',
-
-                    fontSize:
-                      textSize - 4,
-                  }}
-                >
-
+              {activePlayers.map((player) => (
+                <Text key={player.uid} style={{color:player.isHost? '#863535': 'white',fontWeight: 'bold',fontSize:textSize - 4,}}>
                   {player.username}
-
-                  {
-                    player.uid === currentUid
-                    ? ` ${texts[language].you}`
-                    : ""
-                  }
-
+                  {player.uid === currentUid? ` ${texts[language].you}`: ""}
                 </Text>
 
               ))}
@@ -379,138 +252,59 @@ Le joueur avec le plus de points gagne.`,
 
       </View>
 
-      {/* GAME CARD */}
+      {/* Contenedor para las reglas */}
       <View style={styles.container2}>
 
-        {/* LEFT */}
+        {/* Contenedor izquierdo */}
         <View style={styles.left}>
 
-          <Image
-            source={require('../Imagenes/charades.png')}
-            style={styles.image}
-          />
+          <Image source={require('../Imagenes/charades.png')}style={styles.image}/>
 
-          <Text
-            style={[
-              styles.gameTitle,
-              {
-                fontSize:
-                  textSize
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .gameTitle
-            }
+          <Text style={[styles.gameTitle,{fontSize:textSize}]}>
+            {texts[language].gameTitle}
           </Text>
 
         </View>
 
-        {/* RIGHT */}
+        {/* Derecha */}
         <View style={styles.right}>
 
-          <Text
-            style={[
-              styles.rules,
-              {
-                fontSize:
-                  textSize - 2
-              }
-            ]}
-          >
-            {texts[language].rules}
-          </Text>
+          <Text style={[styles.rules,{fontSize:textSize - 2}]}>{texts[language].rules}</Text>
 
           <View style={styles.line} />
 
-          <Text
-            style={[
-              styles.info,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .playersInfo
-            }
-          </Text>
+          <Text style={[styles.info,{fontSize: textSize - 3}]}>{texts[language].playersInfo}</Text>
 
-          <Text
-            style={[
-              styles.info,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .timeInfo
-            }
-          </Text>
+          <Text style={[styles.info,{fontSize:textSize - 3}]}>{ texts[language].timeInfo}</Text>
 
         </View>
 
       </View>
 
       {/* ERROR */}
-      {mensaje !== '' && (
-
-        <Text
-          style={[
-            styles.error,
-            {
-              fontSize:
-                textSize - 1
-            }
-          ]}
-        >
-          {mensaje}
-        </Text>
-
-      )}
+      {mensaje !== '' && (<Text style={[styles.error,{fontSize:textSize - 1 }]}>{mensaje}</Text>)}
 
       {/* START BUTTON */}
-      <TouchableOpacity
-        onPress={startGame}
-        style={[
-          styles.start,
-          !isHost && {
-            opacity: 0.5
-          }
-        ]}
-        disabled={!isHost}
-      >
+      <TouchableOpacity onPress={startGame}style={[styles.start,!isHost && {opacity: 0.5 }]} disabled={!isHost}>
 
-        <Text
-          style={{
-            color: 'white',
-            fontSize: textSize + 2,
-            fontWeight: 'bold'
-          }}
-        >
+        <Text style={{ color: 'white',fontSize: textSize + 2,fontWeight: 'bold'}}>
           {texts[language].start}
         </Text>
 
       </TouchableOpacity>
 
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
 
   container: {
-    flex: 1,
+    flexGrow: 1,
     flexDirection: 'column',
     backgroundColor: '#14213b',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    paddingBottom: 40,
   },
 
   container1: {

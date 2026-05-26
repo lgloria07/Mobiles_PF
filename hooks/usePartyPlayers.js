@@ -1,3 +1,4 @@
+// CREAMOS UN HOOK PARA PODER OBTENER LOS JUGADORES ACTIVOS EN UNA PARTIDA EN CUALQUIER MOMENTO 
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot, collection, getDoc } from 'firebase/firestore';
 import { db } from '../services/firebase';
@@ -15,7 +16,7 @@ export default function usePartyPlayers(code) {
     let host = null;
     let categoriesMap = {};
 
-    // Listener 1: party (members + host)
+    // Obtenemos miembros y host en tiempo real
     const unsubscribeParty = onSnapshot(partyRef, (snapshot) => {
       if (!snapshot.exists()) return;
 
@@ -26,7 +27,7 @@ export default function usePartyPlayers(code) {
       updatePlayers();
     });
 
-    // Listener 2: players (categorías en tiempo real)
+    // Obtenemos categorías de jugadores en tiempo real
     const unsubscribePlayers = onSnapshot(playersRef, (snapshot) => {
       categoriesMap = {};
 
@@ -37,7 +38,7 @@ export default function usePartyPlayers(code) {
       updatePlayers();
     });
 
-    //Función para combinar todo
+    // Función para actualizar la lista de jugadores activos
     const updatePlayers = async () => {
       if (!members.length) {
         setActivePlayers([]);
@@ -47,6 +48,7 @@ export default function usePartyPlayers(code) {
       if (Object.keys(categoriesMap).length === 0) {
       }
 
+      // Obtenemos datos de cada jugador
       const playersData = await Promise.all(
         members.map(async (uid) => {
           const userRef = doc(db, "users", uid);

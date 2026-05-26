@@ -1,29 +1,16 @@
 import { useState, useContext } from 'react';
 
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity
-} from 'react-native';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView} from 'react-native';
 
 /* Conexion con fireStore */
 import { auth, db }
 from '../services/firebase';
 
-import {
-  doc,
-  setDoc,
-  updateDoc,
-  getDoc
-} from 'firebase/firestore';
+import {doc,setDoc,updateDoc,getDoc} from 'firebase/firestore';
 
-import { Ionicons }
-from '@expo/vector-icons';
+import { Ionicons }from '@expo/vector-icons';
 
-import { charactersWho }
-from '../data/charactersWho';
+import { charactersWho }from '../data/charactersWho';
 
 // Import hooks
 import usePartyPlayers
@@ -32,37 +19,23 @@ from '../hooks/usePartyPlayers';
 import { SettingsContext }
 from '../services/SettingsContext';
 
-export default function RulesWhoAmI({
-  navigation,
-  route
-}) {
+export default function RulesWhoAmI({navigation,route}) {
 
-  const [mensaje, setMensaje] =
-    useState('');
+  const [mensaje, setMensaje] =useState('');
 
   // Jugadores activos
   const { code } = route.params;
 
-  const { activePlayers } =
-    usePartyPlayers(code);
+  const { activePlayers } =usePartyPlayers(code);
 
-  const currentUid =
-    auth.currentUser?.uid;
+  const currentUid = auth.currentUser?.uid;
 
-  const currentPlayer =
-    activePlayers.find(
-      p => p.uid === currentUid
-    );
+  const currentPlayer =activePlayers.find(p => p.uid === currentUid);
 
-  const isHost =
-    currentPlayer?.isHost || false;
+  const isHost = currentPlayer?.isHost || false;
 
   // SETTINGS
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
   // TEXTS
   const texts = {
@@ -130,109 +103,47 @@ export default function RulesWhoAmI({
 
     try {
 
-      const partyRef =
-        doc(db, 'parties', code);
+      const partyRef = doc(db, 'parties', code);
 
-      const partySnap =
-        await getDoc(partyRef);
+      const partySnap = await getDoc(partyRef);
 
-      if (!partySnap.exists())
-        return;
+      if (!partySnap.exists()) return;
 
-      const data =
-        partySnap.data();
+      const data = partySnap.data();
 
-      const members =
-        data.members || [];
+      const members = data.members || [];
 
       // Mezclar personajes
-      const shuffled =
-        [...charactersWho]
-          .sort(() =>
-            0.5 - Math.random()
-          );
+      const shuffled = [...charactersWho].sort(() => 0.5 - Math.random());
 
       // Tomar 30
-      const selectedCharacters =
-        shuffled.slice(0, 30);
+      const selectedCharacters = shuffled.slice(0, 30);
 
       // Asignar 1 personaje
-      for (
-        let i = 0;
-        i < members.length;
-        i++
-      ) {
+      for (let i = 0;i < members.length;i++) {
 
         const uid = members[i];
 
-        const playerRef =
-          doc(
-            db,
-            'parties',
-            code,
-            'players',
-            uid
-          );
+        const playerRef =doc(db,'parties',code, 'players',uid);
 
-        await setDoc(
-          playerRef,
-          {
-            character:
-              selectedCharacters[
-                i %
-                selectedCharacters.length
-              ]
-          },
-          { merge: true }
-        );
-      }
+        await setDoc(playerRef,{character:selectedCharacters[i %selectedCharacters.length]},{ merge: true });}
 
       // Guardar pool global
-      await updateDoc(
-        partyRef,
-        {
-          status: 'in_progress',
-          game: 'whoami',
-          charactersPool:
-            selectedCharacters
-        }
-      );
+      await updateDoc(partyRef,{status: 'in_progress',game: 'whoami',charactersPool:selectedCharacters});
 
-      navigation.navigate(
-        'whoAmI',
-        { code }
-      );
-
+      navigation.navigate('whoAmI',{ code });
     } catch (error) {
+      console.error('Error starting game: ',error);
 
-      console.error(
-        'Error starting game: ',
-        error
-      );
-
-      setMensaje(
-        'Error starting game'
-      );
+      setMensaje('Error starting game');
     }
   };
 
   return (
-    <View style={styles.container}>
-
+    <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
       {/* Flecha return */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.goBack()
-        }
-        style={styles.backButton}
-      >
-
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
-
+      <TouchableOpacity onPress={() =>navigation.goBack()}style={styles.backButton}>
+        <Ionicons  name="arrow-back"size={26}color="white"/>
       </TouchableOpacity>
 
       {/* Logo y Titulo */}
@@ -240,24 +151,13 @@ export default function RulesWhoAmI({
 
         <View style={styles.container11}>
 
-          <Image
-            source={require('../Imagenes/logo.png')}
-            style={{
-              width: "100%",
-              height: "60%"
-            }}
-          />
+          <Image source={require('../Imagenes/logo.png')}style={{width: "100%",height: "60%"}}/>
 
           <Text style={[styles.title,{fontSize:titleSize - 12}]}>
             Green Monster
           </Text>
 
-          <Text
-            style={[
-              styles.subtitle,
-              { fontSize: textSize - 3 }
-            ]}
-          >
+          <Text style={[styles.subtitle,{ fontSize: textSize - 3 }]} >
             {t.subtitle}
           </Text>
 
@@ -268,12 +168,7 @@ export default function RulesWhoAmI({
 
           <View style={styles.container121}>
 
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontSize: textSize - 1
-              }}
-            >
+            <Text style={{fontWeight: 'bold',fontSize: textSize - 1}}>
               {t.activePlayers}
             </Text>
 
@@ -281,36 +176,13 @@ export default function RulesWhoAmI({
 
           <View style={styles.container122}>
 
-            <View
-              style={{
-                flexDirection: 'column',
-                marginTop: 8
-              }}
-            >
+            <View style={{flexDirection: 'column',marginTop: 8}}>
 
-              {activePlayers.map(
-                (player) => (
-
-                  <Text
-                    key={player.uid}
-                    style={{
-                      color:
-                        player.isHost
-                          ? '#863535'
-                          : 'white',
-
-                      fontWeight: 'bold',
-                      fontSize:
-                        textSize - 3,
-                    }}
-                  >
-
+              {activePlayers.map((player) => (
+                  <Text key={player.uid}
+                    style={{ color:player.isHost? '#863535': 'white',fontWeight: 'bold',fontSize: textSize - 3,}}>
                     {player.username}
-
-                    {player.uid === currentUid
-                      ? t.you
-                      : ""}
-
+                    {player.uid === currentUid ? t.you: ""}
                   </Text>
                 )
               )}
@@ -329,17 +201,9 @@ export default function RulesWhoAmI({
         {/* LEFT */}
         <View style={styles.left}>
 
-          <Image
-            source={require('../Imagenes/who.png')}
-            style={styles.image}
-          />
+          <Image source={require('../Imagenes/who.png')}style={styles.image}/>
 
-          <Text
-            style={[
-              styles.gameTitle,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.gameTitle,{ fontSize: textSize }]} >
             {t.gameTitle}
           </Text>
 
@@ -349,31 +213,17 @@ export default function RulesWhoAmI({
         <View style={styles.right}>
 
           <Text
-            style={[
-              styles.rules,
-              { fontSize: textSize - 2 }
-            ]}
-          >
+            style={[ styles.rules,{ fontSize: textSize - 2 }]}>
             {t.rules}
           </Text>
 
           <View style={styles.line} />
 
-          <Text
-            style={[
-              styles.info,
-              { fontSize: textSize - 3 }
-            ]}
-          >
+          <Text style={[styles.info,{ fontSize: textSize - 3 }]}>
             {t.players}
           </Text>
 
-          <Text
-            style={[
-              styles.info,
-              { fontSize: textSize - 3 }
-            ]}
-          >
+          <Text style={[styles.info, { fontSize: textSize - 3 }]}>
             {t.time}
           </Text>
 
@@ -383,7 +233,6 @@ export default function RulesWhoAmI({
 
       {/* Error */}
       {mensaje !== '' && (
-
         <Text style={styles.error}>
           {mensaje}
         </Text>
@@ -391,41 +240,26 @@ export default function RulesWhoAmI({
       )}
 
       {/* Boton Start */}
-      <TouchableOpacity
-        onPress={startGame}
-        style={[
-          styles.start,
-          !isHost && {
-            opacity: 0.5
-          }
-        ]}
-        disabled={!isHost}
-      >
+      <TouchableOpacity onPress={startGame}style={[styles.start,!isHost && {opacity: 0.5}]}disabled={!isHost}>
 
-        <Text
-          style={{
-            color: 'white',
-            fontSize: textSize + 2,
-            fontWeight: 'bold'
-          }}
-        >
+        <Text style={{color: 'white',fontSize: textSize + 2,fontWeight: 'bold' }}>
           {t.start}
         </Text>
 
       </TouchableOpacity>
 
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
 
   container: {
-    flex: 1,
-    flexDirection:'column',
+    flexGrow: 1,
+    flexDirection: 'column',
     backgroundColor: '#14213b',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    paddingBottom: 40,
   },
 
   container1:{

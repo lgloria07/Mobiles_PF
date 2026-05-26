@@ -1,27 +1,9 @@
 import { useState, useContext } from 'react';
-
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TextInput,
-  TouchableOpacity
-} from 'react-native';
+import {StyleSheet,Text,View,Image,TextInput,TouchableOpacity} from 'react-native';
 
 /* Conexion con fireStore */
 import { auth, db } from '../services/firebase';
-
-import {
-  doc,
-  setDoc,
-  updateDoc,
-  arrayUnion,
-  getDoc,
-  arrayRemove,
-  deleteDoc,
-} from 'firebase/firestore';
-
+import {doc,setDoc,updateDoc,arrayUnion,getDoc,arrayRemove,deleteDoc,} from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
 
 import { Ionicons } from '@expo/vector-icons';
@@ -34,11 +16,7 @@ export default function PartyScreen({ navigation }) {
   const [partyCode, setPartyCode] = useState('');
   const [currentParty, setCurrentParty] = useState(null);
 
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
   /* Traducciones */
   const texts = {
@@ -111,15 +89,10 @@ export default function PartyScreen({ navigation }) {
   const signOut = async () => {
 
     try {
-
       await leaveParty();
-
       await firebaseSignOut(auth);
-
       navigation.replace('login');
-
     } catch (error) {
-
       console.log(error);
     }
   };
@@ -127,33 +100,22 @@ export default function PartyScreen({ navigation }) {
   const leaveParty = async () => {
 
     try {
-
       const user = auth.currentUser;
-
-      if (!user) return;
-
-      const partyRef = doc(db, "parties", currentParty);
-
+      if (!user) return; // Si no hay usuario, no hacemos nada
+      const partyRef = doc(db, "parties", currentParty); // Obtenemos la referencia de la fiesta actual
       await updateDoc(partyRef, {
-        members: arrayRemove(user.uid)
+        members: arrayRemove(user.uid) // Removemos al usuario de la lista 
       });
-
-      const updatedSnap = await getDoc(partyRef);
-
-      if (!updatedSnap.exists()) return;
-
-      const updatedData = updatedSnap.data();
-
+      const updatedSnap = await getDoc(partyRef); // Obtenemos la fiesta actualizada
+      if (!updatedSnap.exists()) return; // Si la fiesta ya no existe, no hacemos nada
+      const updatedData = updatedSnap.data(); // Obtenemos los datos actualizados
       if (
         !updatedData.members ||
         updatedData.members.length === 0
       ) {
-
-        await deleteDoc(partyRef);
+        await deleteDoc(partyRef); // Si no quedan miembros, eliminamos la fiesta
       }
-
     } catch (error) {
-
       console.log("leaveParty error:", error);
     }
   };
@@ -161,51 +123,33 @@ export default function PartyScreen({ navigation }) {
   const joinParty = async () => {
 
     try {
-
       const user = auth.currentUser;
-
-      if (!partyCode) {
-
+      if (!partyCode) { 
         setMensaje(texts[language].enterCode);
         return;
       }
-
-      const partyRef = doc(
-        db,
-        "parties",
-        partyCode.toUpperCase()
-      );
+      const partyRef = doc(db,"parties",partyCode.toUpperCase());
 
       const partySnap = await getDoc(partyRef);
 
       if (!partySnap.exists()) {
-
         setMensaje(texts[language].partyNotFound);
         return;
       }
 
-      const data = partySnap.data();
-
-      if (data.members.length >= 5) {
-
+      const data = partySnap.data(); // Obtenemos los datos de la fiesta
+      if (data.members.length >= 5) { //Solo permitimos 5 jugadores por fiesta
         setMensaje(texts[language].maxPlayers);
         return;
       }
 
-      await updateDoc(partyRef, {
-        members: arrayUnion(user.uid)
-      });
+      await updateDoc(partyRef, {members: arrayUnion(user.uid)}); // Agregamos al usuario a la lista de miembros
 
       let code = partyCode.toUpperCase();
-
       setCurrentParty(code);
-
       navigation.navigate('gameSelection', { code });
-
     } catch (error) {
-
       console.log(error);
-
       setMensaje(texts[language].joinError);
     }
   };
@@ -213,33 +157,26 @@ export default function PartyScreen({ navigation }) {
   const createParty = async () => {
 
     try {
-
       const user = auth.currentUser;
-
-      let code;
-      let partySnap;
+      let code; // Generamos un código único para la fiesta
+      let partySnap; //Referencia de la fiesta
 
       do {
-
-        code = Math.random()
+        code = Math.random() //Creamos un codigo aleatorio
           .toString(36)
           .substring(2, 8)
           .toUpperCase();
 
         const partyRef = doc(db, "parties", code);
 
-        partySnap = await getDoc(partyRef);
+        partySnap = await getDoc(partyRef); // Verificamos si ya existe una fiesta con ese código
 
-      } while (partySnap.exists());
+      } while (partySnap.exists()); // Hacemos esto hasta obtener un codigo nuevo
 
       await setDoc(doc(db, "parties", code), {
-
         code: code,
-
         host: user.uid,
-
         members: [user.uid],
-
         createdAt: new Date()
       });
 
@@ -248,7 +185,6 @@ export default function PartyScreen({ navigation }) {
       navigation.navigate('gameSelection', { code });
 
     } catch (error) {
-
       setMensaje(texts[language].createError);
     }
   };
@@ -258,44 +194,24 @@ export default function PartyScreen({ navigation }) {
     <View style={styles.container}>
 
       {/* Flecha return */}
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={26} color="white"/>
       </TouchableOpacity>
 
       {/* Logo y Titulo */}
       <View style={styles.container1}>
 
         <View style={styles.container11}>
-          <Image
-            source={require('../Imagenes/logo.png')}
-            style={{ width: "100%", height: "100%" }}
-          />
+          <Image source={require('../Imagenes/logo.png')} style={{ width: "100%", height: "100%" }}/>
         </View>
 
         <View style={styles.container12}>
 
-          <Text
-            style={[
-              styles.title,
-              { fontSize: titleSize - 10 }
-            ]}
-          >
+          <Text style={[styles.title,{ fontSize: titleSize - 10 }]}>
             Green Monster
           </Text>
 
-          <Text
-            style={[
-              styles.subtitle,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[ styles.subtitle,{ fontSize: textSize }]}>
             {texts[language].subtitle}
           </Text>
 
@@ -307,12 +223,7 @@ export default function PartyScreen({ navigation }) {
       <View style={styles.messageContainer}>
 
         <Text
-          style={{
-            color: '#e62424',
-            fontSize: textSize,
-            textAlign: "center"
-          }}
-        >
+          style={{color: '#e62424',fontSize: textSize,textAlign: "center"}}>
           {mensaje}
         </Text>
 
@@ -322,12 +233,7 @@ export default function PartyScreen({ navigation }) {
       <View style={styles.container2}>
 
         <View style={styles.container21}>
-          <Text
-            style={[
-              styles.subtitulo,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.subtitulo,{ fontSize: textSize }]}>
             {texts[language].partyCode}
           </Text>
         </View>
@@ -347,49 +253,22 @@ export default function PartyScreen({ navigation }) {
       </View>
 
       {/* Join */}
-      <TouchableOpacity
-        onPress={joinParty}
-        style={styles.join}
-      >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: textSize,
-            fontWeight: 'bold'
-          }}
-        >
+      <TouchableOpacity onPress={joinParty} style={styles.join}>
+        <Text style={{ color: 'white', fontSize: textSize,fontWeight: 'bold'}}>
           {texts[language].joinParty}
         </Text>
       </TouchableOpacity>
 
       {/* Create */}
-      <TouchableOpacity
-        onPress={createParty}
-        style={styles.create}
-      >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: textSize,
-            fontWeight: 'bold'
-          }}
-        >
+      <TouchableOpacity onPress={createParty} style={styles.create}>
+        <Text style={{ color: 'white',fontSize: textSize,fontWeight: 'bold'}}>
           {texts[language].createParty}
         </Text>
       </TouchableOpacity>
 
       {/* Sign Out */}
-      <TouchableOpacity
-        onPress={signOut}
-        style={styles.signOut}
-      >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: textSize,
-            fontWeight: 'bold'
-          }}
-        >
+      <TouchableOpacity onPress={signOut} style={styles.signOut}>
+        <Text style={{color: 'white',fontSize: textSize,fontWeight: 'bold'}}>
           {texts[language].signOut}
         </Text>
       </TouchableOpacity>

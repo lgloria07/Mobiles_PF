@@ -1,23 +1,13 @@
 import { useState, useContext } from 'react';
-
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TextInput,
-  TouchableOpacity
-} from 'react-native';
+import {StyleSheet,Text,View,Image,TextInput,TouchableOpacity} from 'react-native';
 
 /* Conexion con firebase */
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-
 import { auth } from '../services/firebase';
-
 import { doc, setDoc } from 'firebase/firestore';
-
 import { db } from '../services/firebase';
 
+/* Usado para saber el idioma y tamaño de letra */
 import { SettingsContext } from '../services/SettingsContext';
 
 export default function RegisterScreen({ navigation }) {
@@ -28,11 +18,7 @@ export default function RegisterScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [mensaje, setMensaje] = useState('');
 
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
   /* Traducciones */
   const texts = {
@@ -131,6 +117,7 @@ export default function RegisterScreen({ navigation }) {
 
     /* Email regex */
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    /* Debe iniciar con un caracter no espacio y contener un arroba y un punto */
 
     if (!emailRegex.test(email)) {
       setMensaje(texts[language].emailError);
@@ -138,8 +125,8 @@ export default function RegisterScreen({ navigation }) {
     }
 
     /* Password regex */
-    const passwordRegex =
-      /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+      /* Debe tener al menos 6 caracteres, al menos una letra y un número */
 
     if (!passwordRegex.test(password)) {
       setMensaje(texts[language].passwordError);
@@ -155,11 +142,7 @@ export default function RegisterScreen({ navigation }) {
     try {
 
       const userCredential =
-        await createUserWithEmailAndPassword(
-          auth,
-          email,
-          password
-        );
+        await createUserWithEmailAndPassword(auth,email,password);
 
       const userAuth = userCredential.user;
 
@@ -192,20 +175,12 @@ export default function RegisterScreen({ navigation }) {
       <View style={styles.container1}>
 
         <View style={styles.container11}>
-          <Image
-            source={require('../Imagenes/logo.png')}
-            style={{ width: "100%", height: "100%" }}
-          />
+          <Image source={require('../Imagenes/logo.png')} style={{ width: "100%", height: "100%" }}/>
         </View>
 
         <View style={styles.container12}>
 
-          <Text
-            style={[
-              styles.title,
-              { fontSize: titleSize }
-            ]}
-          >
+          <Text style={[styles.title,{ fontSize: titleSize }]}>
             {texts[language].title}
           </Text>
 
@@ -216,13 +191,7 @@ export default function RegisterScreen({ navigation }) {
       {/* Mensaje */}
       <View style={styles.messageContainer}>
 
-        <Text
-          style={{
-            color: '#e62424',
-            fontSize: textSize,
-            textAlign: "center"
-          }}
-        >
+        <Text style={{color: '#e62424',fontSize: textSize,textAlign: "center"}}>
           {mensaje}
         </Text>
 
@@ -232,12 +201,7 @@ export default function RegisterScreen({ navigation }) {
       <View style={styles.container2}>
 
         <View style={styles.container21}>
-          <Text
-            style={[
-              styles.subtitulo,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.subtitulo,{ fontSize: textSize }]}>
             {texts[language].username}
           </Text>
         </View>
@@ -258,12 +222,7 @@ export default function RegisterScreen({ navigation }) {
       <View style={styles.container2}>
 
         <View style={styles.container21}>
-          <Text
-            style={[
-              styles.subtitulo,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.subtitulo,{ fontSize: textSize }]}>
             {texts[language].email}
           </Text>
         </View>
@@ -284,12 +243,7 @@ export default function RegisterScreen({ navigation }) {
       <View style={styles.container3}>
 
         <View style={styles.container21}>
-          <Text
-            style={[
-              styles.subtitulo,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.subtitulo,{ fontSize: textSize }]}>
             {texts[language].password}
           </Text>
         </View>
@@ -311,12 +265,7 @@ export default function RegisterScreen({ navigation }) {
       <View style={styles.container3}>
 
         <View style={styles.container21}>
-          <Text
-            style={[
-              styles.subtitulo,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.subtitulo,{ fontSize: textSize }]}>
             {texts[language].confirmPassword}
           </Text>
         </View>
@@ -335,43 +284,20 @@ export default function RegisterScreen({ navigation }) {
       </View>
 
       {/* Boton Register */}
-      <TouchableOpacity
-        onPress={Registrar}
-        style={styles.ingresar}
-      >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: textSize,
-            fontWeight: 'bold'
-          }}
-        >
+      <TouchableOpacity onPress={Registrar} style={styles.ingresar}>
+        <Text style={{color: 'white', fontSize: textSize,fontWeight: 'bold'}}>
           {texts[language].register}
         </Text>
       </TouchableOpacity>
 
       {/* Login */}
       <Text
-        style={{
-          marginTop: 10,
-          color: '#e2eee7',
-          fontWeight: 'bold',
-          fontSize: textSize,
-        }}
-      >
+        style={{ marginTop: 10,color: '#e2eee7',fontWeight: 'bold',fontSize: textSize,}}>
         {texts[language].alreadyAccount}
       </Text>
 
-      <TouchableOpacity
-        onPress={() => navigation.navigate('login')}
-      >
-        <Text
-          style={{
-            color: '#33A548',
-            fontWeight: 'bold',
-            fontSize: textSize,
-          }}
-        >
+      <TouchableOpacity onPress={() => navigation.navigate('login')}>
+        <Text style={{color: '#33A548',fontWeight: 'bold',fontSize: textSize,}}>
           {texts[language].signIn}
         </Text>
       </TouchableOpacity>

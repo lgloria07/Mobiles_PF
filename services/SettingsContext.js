@@ -1,5 +1,5 @@
 import React, { createContext, useState } from 'react';
-
+// Un settingsContext sirve para poder establecer valores globales, en este caso el idioma y tamaño de letra
 export const SettingsContext = createContext();
 
 export const SettingsProvider = ({ children }) => {
@@ -11,8 +11,7 @@ export const SettingsProvider = ({ children }) => {
   const titleSize = fontSize === 'Large' ? 42 : 35;
 
   return (
-    <SettingsContext.Provider
-      value={{
+    <SettingsContext.Provider value={{
         language,
         setLanguage,
         fontSize,

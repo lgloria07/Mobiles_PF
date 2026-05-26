@@ -1,19 +1,14 @@
-import { useState, useContext } from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TextInput,
-  TouchableOpacity
-} from 'react-native';
+import {useState, useContext } from 'react';
+import {StyleSheet,Text,View,Image,TextInput,TouchableOpacity} from 'react-native';
 
 /* Conexion con firebase */
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../services/firebase';
 
+/* Para el icono de settings */
 import { Ionicons } from '@expo/vector-icons';
 
+/* Usado para saber el idioma y tamaño de letra */
 import { SettingsContext } from '../services/SettingsContext';
 
 export default function LoginScreen({ navigation }) {
@@ -22,15 +17,10 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [mensaje, setMensaje] = useState('');
 
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext); //EXPLICAME
 
   /* Traducciones */
   const texts = {
-
     English: {
       title: 'Party Games',
       email: 'Email',
@@ -92,44 +82,40 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  /* Funcion para iniciar sesión */
+  // Funcion para iniciar sesión 
   const Ingresar = async () => {
-
     setMensaje("");
 
-    if (!email || !password) {
+    if (!email || !password) { //Si no se llenan los campos
       setMensaje(texts[language].fillFields);
       return;
     }
 
     try {
 
-      await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
+      await signInWithEmailAndPassword(auth,email,password); 
+      //Await espera hasta que esto suceda
 
-      navigation.navigate('party');
+      navigation.navigate('party'); //Si todo esta bien, pasamos a la pantalla de party
 
     } catch (error) {
 
       switch (error.code) {
 
         case "auth/user-not-found":
-          setMensaje(texts[language].userNotFound);
+          setMensaje(texts[language].userNotFound); //Si no hay usuario
           break;
 
         case "auth/wrong-password":
-          setMensaje(texts[language].wrongPassword);
+          setMensaje(texts[language].wrongPassword); //Si la contaseña es incorrecta
           break;
 
         case "auth/invalid-email":
-          setMensaje(texts[language].invalidEmail);
+          setMensaje(texts[language].invalidEmail); //Si el formato del correo es invalido
           break;
 
         default:
-          setMensaje(texts[language].incorrectLogin);
+          setMensaje(texts[language].incorrectLogin); //Mensaje generico
           break;
       }
     }
@@ -139,45 +125,25 @@ export default function LoginScreen({ navigation }) {
 
     <View style={styles.container}>
 
-      {/* Boton Settings */}
-      <TouchableOpacity
-        style={styles.settingsButton}
-        onPress={() => navigation.navigate('settings')}
-      >
-        <Ionicons
-          name="settings-outline"
-          size={30}
-          color="white"
-        />
+      {/* Boton Settings, para cambiar la configuracion de idioma y tamaño de letra */}
+      <TouchableOpacity style={styles.settingsButton} onPress={() => navigation.navigate('settings')}>
+        <Ionicons name="settings-outline" size={30} color="white"/>
       </TouchableOpacity>
 
       {/* Logo y Titulo */}
       <View style={styles.container1}>
 
         <View style={styles.container11}>
-          <Image
-            source={require('../Imagenes/logo.png')}
-            style={{ width: "100%", height: "100%" }}
-          />
+          <Image source={require('../Imagenes/logo.png')} style={{ width: "100%", height: "100%" }}/>
         </View>
 
         <View style={styles.container12}>
 
-          <Text
-            style={[
-              styles.title,
-              { fontSize: titleSize }
-            ]}
-          >
+          <Text style={[styles.title,{ fontSize: titleSize }]}>
             Green Monster
           </Text>
 
-          <Text
-            style={[
-              styles.subtitle,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.subtitle,{ fontSize: textSize }]}>
             {texts[language].title}
           </Text>
 
@@ -187,13 +153,7 @@ export default function LoginScreen({ navigation }) {
 
       {/* Mensaje */}
       <View style={styles.messageContainer}>
-        <Text
-          style={{
-            color: '#e62424',
-            fontSize: textSize,
-            textAlign: "center"
-          }}
-        >
+        <Text style={{color: '#e62424',fontSize: textSize,textAlign: "center"}}>
           {mensaje}
         </Text>
       </View>
@@ -202,24 +162,14 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.container2}>
 
         <View style={styles.container21}>
-          <Text
-            style={[
-              styles.subtitulo,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.subtitulo,{ fontSize: textSize }]}>
             {texts[language].email}
           </Text>
         </View>
 
         <View style={styles.container22}>
-          <TextInput
-            style={styles.inputUser}
-            placeholder="example@gmail.com"
-            placeholderTextColor="#a4abb9"
-            value={email}
-            onChangeText={setEmail}
-          />
+          <TextInput style={styles.inputUser} placeholder="example@gmail.com" 
+          placeholderTextColor="#a4abb9"value={email} onChangeText={setEmail}/>
         </View>
 
       </View>
@@ -228,25 +178,14 @@ export default function LoginScreen({ navigation }) {
       <View style={styles.container3}>
 
         <View style={styles.container21}>
-          <Text
-            style={[
-              styles.subtitulo,
-              { fontSize: textSize }
-            ]}
-          >
+          <Text style={[styles.subtitulo,{ fontSize: textSize }]}>
             {texts[language].password}
           </Text>
         </View>
 
         <View style={styles.container22}>
-          <TextInput
-            style={styles.inputUser}
-            placeholder="................"
-            placeholderTextColor="#a4abb9"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
-          />
+          <TextInput style={styles.inputUser} placeholder="................" placeholderTextColor="#a4abb9"
+            value={password} onChangeText={setPassword} secureTextEntry={true}/>
         </View>
 
       </View>
@@ -256,39 +195,18 @@ export default function LoginScreen({ navigation }) {
         onPress={Ingresar}
         style={styles.ingresar}
       >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: textSize,
-            fontWeight: 'bold'
-          }}
-        >
+        <Text style={{color: 'white', fontSize: textSize, fontWeight: 'bold'}}>
           {texts[language].signIn}
         </Text>
       </TouchableOpacity>
 
       {/* Registro */}
-      <Text
-        style={{
-          marginTop: 80,
-          color: '#e2eee7',
-          fontWeight: 'bold',
-          fontSize: textSize,
-        }}
-      >
+      <Text style={{marginTop: 80,color: '#e2eee7',fontWeight: 'bold',fontSize: textSize,}}>
         {texts[language].noAccount}
       </Text>
 
-      <TouchableOpacity
-        onPress={() => navigation.navigate('register')}
-      >
-        <Text
-          style={{
-            color: '#33A548',
-            fontWeight: 'bold',
-            fontSize: textSize,
-          }}
-        >
+      <TouchableOpacity onPress={() => navigation.navigate('register')}>
+        <Text style={{ color: '#33A548', fontWeight: 'bold', fontSize: textSize,}}>
           {texts[language].signUp}
         </Text>
       </TouchableOpacity>
@@ -327,7 +245,6 @@ const styles = StyleSheet.create({
   messageContainer: {
     width: "80%",
     height: 40,
-    marginBottom: 20,
     alignItems: "center",
     justifyContent: "center",
   },

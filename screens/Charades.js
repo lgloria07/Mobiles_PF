@@ -140,7 +140,7 @@ export default function Charades({
 
   // TIMER
   const [timer, setTimer] =
-    useState(7);
+    useState(60);
 
   // GAME STATES
   const [started, setStarted] =
@@ -278,7 +278,7 @@ export default function Charades({
       firstWord
     ]);
 
-    setTimer(7);
+    setTimer(60);
 
     setStarted(false);
 
@@ -354,7 +354,7 @@ export default function Charades({
 
     setUsedWords([]);
 
-    setTimer(7);
+    setTimer(60);
   };
 
   // EXIT

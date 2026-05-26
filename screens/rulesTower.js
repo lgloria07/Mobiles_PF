@@ -1,103 +1,56 @@
-import {
-  useState,
-  useContext
-} from 'react';
+import { useState, useContext } from 'react';
 
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  ScrollView
-} from 'react-native';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView} from 'react-native';
 
 /* FIRESTORE */
-import {
-  auth,
-  db
-} from '../services/firebase';
+import { auth, db } from '../services/firebase';
 
-import {
-  doc,
-  setDoc,
-  updateDoc,
-  getDoc
-} from 'firebase/firestore';
+import {doc,setDoc,updateDoc,getDoc} from 'firebase/firestore';
 
-import { Ionicons }
-from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 
-import { categoriesEN}
-from '../data/categoriesTowerEN';
+import { categoriesEN } from '../data/categoriesTowerEN';
+import { categoriesES } from '../data/categoriesTowerES';
+import { categoriesFR } from '../data/categoriesTowerFR';
+import { categoriesZH } from '../data/categoriesTowerZH';
 
-import { categoriesES }
-from '../data/categoriesTowerES';
+/* Hook que nosotros creamos */
+import usePartyPlayers from '../hooks/usePartyPlayers';
 
-import { categoriesFR }
-from '../data/categoriesTowerFR';
+import { SettingsContext } from '../services/SettingsContext';
 
-import { categoriesZH }
-from '../data/categoriesTowerZH';
+export default function RulesTower({navigation,route}) {
 
-/* HOOKS */
-import usePartyPlayers
-from '../hooks/usePartyPlayers';
+  const [mensaje, setMensaje] = useState('');
 
-/* SETTINGS */
-import { SettingsContext }
-from '../services/SettingsContext';
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
-export default function RulesTower({
-  navigation,
-  route
-}) {
-
-  const [mensaje, setMensaje] =
-    useState('');
-
-  /* SETTINGS CONTEXT */
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
-
-  /* PLAYERS */
   const { code } = route.params;
 
-  const { activePlayers } =
-    usePartyPlayers(code);
+  const { activePlayers } = usePartyPlayers(code);
 
-  const currentUid =
-    auth.currentUser?.uid;
+  const currentUid = auth.currentUser?.uid;
 
-  const currentPlayer =
-    activePlayers.find(
-      p => p.uid === currentUid
-    );
+  const currentPlayer = activePlayers.find(
+    p => p.uid === currentUid
+  );
 
-  const isHost =
-    currentPlayer?.isHost || false;
+  const isHost = currentPlayer?.isHost || false;
 
-  /* TRANSLATIONS */
   const texts = {
 
     English: {
 
-      subtitle:
-        'Tower Of Nerds - Rules',
+      subtitle: 'Tower Of Nerds - Rules',
 
-      activePlayers:
-        'Active Players',
+      activePlayers: 'Active Players',
 
       you: '(You)',
 
-      gameTitle:
-        'Tower of Nerds',
+      gameTitle: 'Tower of Nerds',
 
       rules:
-`You are going to be given a category. You'll have to guess characters that fit the given category.
+      `You are going to be given a category. You'll have to guess characters that fit the given category.
 
 If you guess right, you add them to your tower and can guess again.
 
@@ -105,34 +58,27 @@ If you guess your category incorrectly, you lose.
 
 (Be careful, you only have one attempt to guess the category).`,
 
-      playersInfo:
-        'Number of players: 2 - 5',
+      playersInfo: 'Number of players: 2 - 5',
 
-      timeInfo:
-        'Approx time: 10 minutes',
+      timeInfo: 'Approx time: 10 minutes',
 
-      start:
-        'Start',
+      start: 'Start',
 
-      error:
-        'Error starting game. Please try again.',
+      error: 'Error starting game. Please try again.',
     },
 
     Español: {
 
-      subtitle:
-        'Tower Of Nerds - Reglas',
+      subtitle: 'Tower Of Nerds - Reglas',
 
-      activePlayers:
-        'Jugadores Activos',
+      activePlayers: 'Jugadores Activos',
 
       you: '(Tú)',
 
-      gameTitle:
-        'Tower of Nerds',
+      gameTitle: 'Tower of Nerds',
 
       rules:
-`Se te dará una categoría. Tendrás que adivinar personajes que pertenezcan a esa categoría.
+      `Se te dará una categoría. Tendrás que adivinar personajes que pertenezcan a esa categoría.
 
 Si adivinas correctamente, los agregas a tu torre y puedes seguir adivinando.
 
@@ -140,34 +86,27 @@ Si adivinas incorrectamente tu categoría, pierdes.
 
 (Ten cuidado, solo tienes un intento para adivinar la categoría).`,
 
-      playersInfo:
-        'Número de jugadores: 2 - 5',
+      playersInfo: 'Número de jugadores: 2 - 5',
 
-      timeInfo:
-        'Tiempo aproximado: 10 minutos',
+      timeInfo: 'Tiempo aproximado: 10 minutos',
 
-      start:
-        'Iniciar',
+      start: 'Iniciar',
 
-      error:
-        'Error al iniciar el juego. Intenta nuevamente.',
+      error: 'Error al iniciar el juego. Intenta nuevamente.',
     },
 
     Français: {
 
-      subtitle:
-        'Tower Of Nerds - Règles',
+      subtitle: 'Tower Of Nerds - Règles',
 
-      activePlayers:
-        'Joueurs Actifs',
+      activePlayers: 'Joueurs Actifs',
 
       you: '(Vous)',
 
-      gameTitle:
-        'Tower of Nerds',
+      gameTitle: 'Tower of Nerds',
 
       rules:
-`Vous recevrez une catégorie. Vous devrez deviner des personnages correspondant à cette catégorie.
+      `Vous recevrez une catégorie. Vous devrez deviner des personnages correspondant à cette catégorie.
 
 Si vous devinez correctement, vous les ajoutez à votre tour et pouvez continuer.
 
@@ -175,34 +114,27 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
 
 (Faites attention, vous n'avez qu'une seule tentative pour deviner la catégorie).`,
 
-      playersInfo:
-        'Nombre de joueurs: 2 - 5',
+      playersInfo: 'Nombre de joueurs: 2 - 5',
 
-      timeInfo:
-        'Temps approximatif: 10 minutes',
+      timeInfo: 'Temps approximatif: 10 minutes',
 
-      start:
-        'Commencer',
+      start: 'Commencer',
 
-      error:
-        'Erreur lors du démarrage du jeu.',
+      error: 'Erreur lors du démarrage du jeu.',
     },
 
     中文: {
 
-      subtitle:
-        'Tower Of Nerds - 规则',
+      subtitle: 'Tower Of Nerds - 规则',
 
-      activePlayers:
-        '在线玩家',
+      activePlayers: '在线玩家',
 
       you: '(你)',
 
-      gameTitle:
-        'Tower of Nerds',
+      gameTitle: 'Tower of Nerds',
 
       rules:
-`你将获得一个类别。
+      `你将获得一个类别。
 
 你需要猜出符合该类别的角色。
 
@@ -210,147 +142,75 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
 
 如果猜错了你的类别，你就输了。
 
-（小心，你只有一次机会猜类别）。`,
+小心，你只有一次机会猜类别）。`,
 
-      playersInfo:
-        '玩家人数: 2 - 5',
+      playersInfo: '玩家人数: 2 - 5',
 
-      timeInfo:
-        '预计时间: 10分钟',
+      timeInfo: '预计时间: 10分钟',
 
-      start:
-        '开始',
+      start: '开始',
 
-      error:
-        '启动游戏时出错，请重试。',
+      error: '启动游戏时出错，请重试。',
     }
   };
-  /* CATEGORY LIST BY LANGUAGE */
+
   const categoriesByLanguage = {
 
-    English:
-      categoriesEN,
+    English: categoriesEN,
 
-    Español:
-      categoriesES,
+    Español: categoriesES,
 
-    Français:
-      categoriesFR,
+    Français: categoriesFR,
 
-    中文:
-      categoriesZH,
+    中文: categoriesZH,
   };
 
   const selectedCategories =
-    categoriesByLanguage[language] ||
-    categoriesEN;
+    categoriesByLanguage[language] || categoriesEN;
 
-  /* START GAME */
   const startGame = async () => {
 
     try {
 
-      const partyRef =
-        doc(db, 'parties', code);
+      const partyRef = doc(db, 'parties', code);
 
-      const partySnap =
-        await getDoc(partyRef);
+      const partySnap = await getDoc(partyRef);
 
-      if (!partySnap.exists())
-        return;
+      if (!partySnap.exists()) return;
 
-      const data =
-        partySnap.data();
+      const data = partySnap.data();
 
-      const members =
-        data.members || [];
+      const members = data.members || [];
 
-      /* RANDOM CATEGORIES */
-      const shuffled =
-        [...selectedCategories]
+      /* Categorias aleatorias */
+      const shuffled = [...selectedCategories]
         .sort(() => 0.5 - Math.random());
 
-      for (
-        let i = 0;
-        i < members.length;
-        i++
-      ) {
+      for (let i = 0;i < members.length;i++) {
 
-        const uid =
-          members[i];
+        const uid = members[i];
 
-        const playerRef =
-          doc(
-            db,
-            'parties',
-            code,
-            'players',
-            uid
-          );
+        const playerRef = doc(db,'parties',code,'players',uid);
 
-        await setDoc(
-          playerRef,
-          {
-            category:
-              shuffled[
-                i % shuffled.length
-              ]
-          },
-          { merge: true }
-        );
+        await setDoc(playerRef,{category:shuffled[i % shuffled.length]},{ merge: true });
       }
 
-      /* SAVE GAME STATE */
-      await updateDoc(
-        partyRef,
-        {
-          status: 'in_progress',
-          game: 'tower'
-        }
-      );
+      await updateDoc(partyRef,{status: 'in_progress',game: 'tower'});
 
-      navigation.replace(
-        'tower',
-        { code }
-      );
-
+      navigation.replace('tower',{ code });
     } catch (error) {
-
-      console.error(
-        'Error starting game: ',
-        error
-      );
-
-      setMensaje(
-        texts[language].error
-      );
+      console.error('Error starting game: ',error);
+      setMensaje(texts[language].error);
     }
   };
 
   return (
 
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{
-        alignItems: 'center',
-        paddingBottom: 40,
-      }}
-    >
+    <ScrollView style={styles.container}contentContainerStyle={{alignItems: 'center',paddingBottom: 40,}}>
 
       {/* BACK BUTTON */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.goBack()
-        }
-        style={styles.backButton}
-      >
-
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
-
+      <TouchableOpacity onPress={() => navigation.goBack()}style={styles.backButton}>
+        <Ionicons name="arrow-back" size={26} color="white"/>
       </TouchableOpacity>
 
       {/* HEADER */}
@@ -358,39 +218,14 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
 
         <View style={styles.container11}>
 
-          <Image
-            source={require('../Imagenes/logo.png')}
-            style={{
-              width: "100%",
-              height: "60%"
-            }}
-          />
+          <Image source={require('../Imagenes/logo.png')}style={{width: "100%",height: "60%"}}/>
 
-          <Text
-            style={[
-              styles.title,
-              {
-                fontSize:
-                  titleSize - 12
-              }
-            ]}
-          >
+          <Text style={[styles.title,{fontSize:titleSize - 12}]}>
             Green Monster
           </Text>
 
-          <Text
-            style={[
-              styles.subtitle,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .subtitle
-            }
+          <Text style={[styles.subtitle,{fontSize:textSize - 3}]}>
+            {texts[language].subtitle}
           </Text>
 
         </View>
@@ -400,59 +235,27 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
 
           <View style={styles.container121}>
 
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontSize:
-                  textSize - 3
-              }}
-            >
-              {
-                texts[language]
-                  .activePlayers
-              }
+            <Text style={{fontWeight: 'bold',fontSize:textSize - 3}}>
+              {texts[language].activePlayers}
             </Text>
 
           </View>
 
           <View style={styles.container122}>
 
-            <View
-              style={{
-                flexDirection: 'column',
-                marginTop: 8
-              }}
-            >
+            <View style={{flexDirection: 'column',marginTop: 8}}>
 
-              {activePlayers.map(
-                (player) => (
+              {activePlayers.map((player) => (
 
-                  <Text
-                    key={player.uid}
-                    style={{
-                      color:
-                        player.isHost
-                          ? '#863535'
-                          : 'white',
+                <Text key={player.uid} 
+                style={{ color:player.isHost? '#863535': 'white',fontWeight: 'bold',fontSize:textSize - 4, }}>
 
-                      fontWeight: 'bold',
+                  {player.username}
+                  {player.uid === currentUid ? ` ${texts[language].you}`: ""}
 
-                      fontSize:
-                        textSize - 4,
-                    }}
-                  >
+                </Text>
 
-                    {player.username}
-
-                    {
-                      player.uid === currentUid
-                      ? ` ${texts[language].you}`
-                      : ""
-                    }
-
-                  </Text>
-                )
-              )}
+              ))}
 
             </View>
 
@@ -468,24 +271,10 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
         {/* LEFT */}
         <View style={styles.left}>
 
-          <Image
-            source={require('../Imagenes/tower.png')}
-            style={styles.image}
-          />
+          <Image source={require('../Imagenes/tower.png')}style={styles.image}/>
 
-          <Text
-            style={[
-              styles.gameTitle,
-              {
-                fontSize:
-                  textSize
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .gameTitle
-            }
+          <Text style={[styles.gameTitle,{fontSize:textSize}]}>
+            {texts[language].gameTitle}
           </Text>
 
         </View>
@@ -493,51 +282,18 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
         {/* RIGHT */}
         <View style={styles.right}>
 
-          <Text
-            style={[
-              styles.rules,
-              {
-                fontSize:
-                  textSize - 2
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .rules
-            }
+          <Text style={[styles.rules,{fontSize:textSize - 2}]}>
+            {texts[language].rules}
           </Text>
 
           <View style={styles.line} />
 
-          <Text
-            style={[
-              styles.info,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .playersInfo
-            }
+          <Text style={[styles.info,{fontSize:textSize - 3}]}>
+            {texts[language].playersInfo}
           </Text>
 
-          <Text
-            style={[
-              styles.info,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .timeInfo
-            }
+          <Text style={[styles.info,{fontSize:textSize - 3}]}>
+            {texts[language].timeInfo}
           </Text>
 
         </View>
@@ -546,45 +302,16 @@ Si vous devinez incorrectement votre catégorie, vous perdez.
 
       {/* ERROR */}
       {mensaje !== '' && (
-
-        <Text
-          style={[
-            styles.error,
-            {
-              fontSize:
-                textSize - 1
-            }
-          ]}
-        >
+        <Text style={[styles.error,{fontSize:textSize - 1}]}>
           {mensaje}
         </Text>
-
       )}
 
       {/* START BUTTON */}
-      <TouchableOpacity
-        onPress={startGame}
-        style={[
-          styles.start,
-          !isHost && {
-            opacity: 0.5
-          }
-        ]}
-        disabled={!isHost}
-      >
+      <TouchableOpacity onPress={startGame}style={[styles.start,!isHost && {opacity: 0.5}]}disabled={!isHost}>
 
-        <Text
-          style={{
-            color: 'white',
-            fontSize:
-              textSize + 2,
-            fontWeight: 'bold'
-          }}
-        >
-          {
-            texts[language]
-              .start
-          }
+        <Text style={{color: 'white',fontSize:textSize + 2,fontWeight: 'bold'}}>
+          {texts[language].start}
         </Text>
 
       </TouchableOpacity>

@@ -1,66 +1,31 @@
 import { useState, useEffect, useContext } from 'react';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView} from 'react-native';
 
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity
-} from 'react-native';
+import { auth, db }  from '../services/firebase';
+import {doc,updateDoc,onSnapshot} from 'firebase/firestore';
 
-import { auth, db }
-from '../services/firebase';
+import { Ionicons } from '@expo/vector-icons';
 
-import {
-  doc,
-  updateDoc,
-  onSnapshot
-} from 'firebase/firestore';
+import usePartyPlayers from '../hooks/usePartyPlayers';
 
-import { Ionicons }
-from '@expo/vector-icons';
+import { SettingsContext } from '../services/SettingsContext';
 
-import usePartyPlayers
-from '../hooks/usePartyPlayers';
+export default function RulesTaboo({navigation,route}) {
 
-import { SettingsContext }
-from '../services/SettingsContext';
-
-export default function RulesTaboo({
-  navigation,
-  route
-}) {
-
-  const [mensaje, setMensaje] =
-    useState('');
-
+  const [mensaje, setMensaje] = useState('');
   const { code } = route.params;
 
-  /* SETTINGS */
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
-  // ACTIVE PLAYERS
-  const { activePlayers } =
-    usePartyPlayers(code);
+  const { activePlayers } = usePartyPlayers(code);
 
-  const currentUid =
-    auth.currentUser?.uid;
+  const currentUid = auth.currentUser?.uid;
 
-  const currentPlayer =
-    activePlayers.find(
-      p => p.uid === currentUid
-    );
+  const currentPlayer = activePlayers.find(p => p.uid === currentUid);
 
-  const isHost =
-    currentPlayer?.isHost || false;
+  const isHost = currentPlayer?.isHost || false;
 
-  /* TRANSLATIONS */
   const texts = {
-
     English: {
 
       subtitle: 'Taboo - Rules',
@@ -72,7 +37,7 @@ export default function RulesTaboo({
       gameTitle: 'Taboo',
 
       rules:
-`You will receive a word and 5 forbidden words.
+      `You will receive a word and 5 forbidden words.
 
 Help your team guess the main word without saying the forbidden ones.
 
@@ -106,7 +71,7 @@ The player with the most points wins.`,
       gameTitle: 'Taboo',
 
       rules:
-`Recibirás una palabra y 5 palabras prohibidas.
+      `Recibirás una palabra y 5 palabras prohibidas.
 
 Ayuda a tu equipo a adivinar la palabra principal sin decir las prohibidas.
 
@@ -140,7 +105,7 @@ El jugador con más puntos gana.`,
       gameTitle: 'Taboo',
 
       rules:
-`Vous recevrez un mot et 5 mots interdits.
+      `Vous recevrez un mot et 5 mots interdits.
 
 Aidez votre équipe à deviner le mot principal sans dire les mots interdits.
 
@@ -174,7 +139,7 @@ Le joueur avec le plus de points gagne.`,
       gameTitle: '禁忌词',
 
       rules:
-`你会获得一个单词和5个禁止词。
+      `你会获得一个单词和5个禁止词。
 
 帮助你的队伍猜出主要单词，但不能说出禁止词。
 
@@ -202,21 +167,14 @@ Le joueur avec le plus de points gagne.`,
 
     try {
 
-      const firstPlayer =
-        activePlayers[0];
+      const firstPlayer = activePlayers[0];
 
-      await updateDoc(
-        doc(db, 'parties', code),
-        {
-
+      await updateDoc(doc(db, 'parties', code),{
           status: 'in_progress',
-
           game: 'taboo',
-
           gameState: {
             currentTurn: 0,
-            currentPlayer:
-              firstPlayer.uid,
+            currentPlayer:firstPlayer.uid,
             started: false,
             finished: false,
             timer: 60,
@@ -230,304 +188,130 @@ Le joueur avec le plus de points gagne.`,
       );
 
     } catch (error) {
+      console.log('Error starting taboo:',error);
+      setMensaje( texts[language].error);}};
 
-      console.log(
-        'Error starting taboo:',
-        error
-      );
-
-      setMensaje(
-        texts[language].error
-      );
-    }
-  };
-
-  // AUTO NAVIGATION
-  useEffect(() => {
-
-    const unsub = onSnapshot(
-      doc(db, 'parties', code),
-      (snap) => {
+      useEffect(() => {const unsub = onSnapshot(doc(db, 'parties', code),(snap) => {
 
         if (!snap.exists()) return;
-
         const data = snap.data();
+        if (data.status === 'in_progress' && data.game === 'taboo') {
 
-        if (
-          data.status === 'in_progress' &&
-          data.game === 'taboo'
-        ) {
-
-          navigation.replace(
-            'taboo',
-            { code }
-          );
-        }
-      }
-    );
+          navigation.replace('taboo',{ code });}});
 
     return unsub;
-
   }, []);
 
   return (
-    <View style={styles.container}>
-
-      {/* BACK BUTTON */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.goBack()
-        }
-        style={styles.backButton}
-      >
-
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
-
-      </TouchableOpacity>
-
-      {/* HEADER */}
-      <View style={styles.container1}>
-
-        <View style={styles.container11}>
-
-          <Image
-            source={require('../Imagenes/logo.png')}
-            style={{
-              width: "100%",
-              height: "60%"
-            }}
-          />
-
-          <Text
-            style={[
-              styles.title,
-              {
-                fontSize:
-                  titleSize - 12
-              }
-            ]}
-          >
-            Green Monster
-          </Text>
-
-          <Text
-            style={[
-              styles.subtitle,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
-            {texts[language].subtitle}
-          </Text>
-
-        </View>
-
-        {/* PLAYERS */}
-        <View style={styles.container12}>
-
-          <View style={styles.container121}>
-
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontSize:
-                  textSize - 3
-              }}
-            >
-              {
-                texts[language]
-                  .activePlayers
-              }
+  
+      <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+  
+        {/* BACK BUTTON */}
+        <TouchableOpacity onPress={() => navigation.goBack()}style={styles.backButton}>
+          <Ionicons name="arrow-back" size={26} color="white"/>
+        </TouchableOpacity>
+  
+        {/* Contenedor principal */}
+        <View style={styles.container1}>
+  
+          {/* Parte izquierda */}
+          <View style={styles.container11}>
+  
+            <Image source={require('../Imagenes/logo.png')}style={{width: "100%",height: "60%"}}/>
+  
+            <Text style={[styles.title,{fontSize:titleSize - 12}]}>
+              Green Monster
             </Text>
-
+  
+            <Text style={[styles.subtitle,{fontSize:textSize - 3}]}>
+              {texts[language].subtitle}
+            </Text>
+  
           </View>
-
-          <View style={styles.container122}>
-
-            <View
-              style={{
-                flexDirection: 'column',
-                marginTop: 8
-              }}
-            >
-
-              {activePlayers.map(
-                (player) => (
-
-                  <Text
-                    key={player.uid}
-                    style={{
-                      color:
-                        player.isHost
-                          ? '#863535'
-                          : 'white',
-
-                      fontWeight: 'bold',
-
-                      fontSize:
-                        textSize - 4,
-                    }}
-                  >
-
-                    {player.username}
-
-                    {
-                      player.uid === currentUid
-                      ? ` ${texts[language].you}`
-                      : ""
-                    }
-
-                  </Text>
-                )
-              )}
-
+  
+          {/* PLAYERS */}
+          <View style={styles.container12}>
+  
+            <View style={styles.container121}>
+  
+              <Text style={{fontWeight: 'bold',fontSize: textSize - 3}}>{texts[language].activePlayers}</Text>
+  
             </View>
-
+  
+            <View style={styles.container122}>
+  
+              <View
+                style={{flexDirection: 'column',marginTop: 8}}>
+  
+                {activePlayers.map((player) => (
+                  <Text key={player.uid} style={{color:player.isHost? '#863535': 'white',fontWeight: 'bold',fontSize:textSize - 4,}}>
+                    {player.username}
+                    {player.uid === currentUid? ` ${texts[language].you}`: ""}
+                  </Text>
+  
+                ))}
+  
+              </View>
+  
+            </View>
+  
           </View>
-
+  
         </View>
-
-      </View>
-
-      {/* CARD */}
-      <View style={styles.container2}>
-
-        {/* LEFT */}
-        <View style={styles.left}>
-
-          <Image
-            source={require('../Imagenes/taboo.png')}
-            style={styles.image}
-          />
-
-          <Text
-            style={[
-              styles.gameTitle,
-              {
-                fontSize:
-                  textSize
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .gameTitle
-            }
-          </Text>
-
+  
+        {/* Contenedor para las reglas */}
+        <View style={styles.container2}>
+  
+          {/* Contenedor izquierdo */}
+          <View style={styles.left}>
+  
+            <Image source={require('../Imagenes/charades.png')}style={styles.image}/>
+  
+            <Text style={[styles.gameTitle,{fontSize:textSize}]}>
+              {texts[language].gameTitle}
+            </Text>
+  
+          </View>
+  
+          {/* Derecha */}
+          <View style={styles.right}>
+  
+            <Text style={[styles.rules,{fontSize:textSize - 2}]}>{texts[language].rules}</Text>
+  
+            <View style={styles.line} />
+  
+            <Text style={[styles.info,{fontSize: textSize - 3}]}>{texts[language].playersInfo}</Text>
+  
+            <Text style={[styles.info,{fontSize:textSize - 3}]}>{ texts[language].timeInfo}</Text>
+  
+          </View>
+  
         </View>
-
-        {/* RIGHT */}
-        <View style={styles.right}>
-
-          <Text
-            style={[
-              styles.rules,
-              {
-                fontSize:
-                  textSize - 2
-              }
-            ]}
-          >
-            {texts[language].rules}
+  
+        {/* ERROR */}
+        {mensaje !== '' && (<Text style={[styles.error,{fontSize:textSize - 1 }]}>{mensaje}</Text>)}
+  
+        {/* START BUTTON */}
+        <TouchableOpacity onPress={startGame}style={[styles.start,!isHost && {opacity: 0.5 }]} disabled={!isHost}>
+  
+          <Text style={{ color: 'white',fontSize: textSize + 2,fontWeight: 'bold'}}>
+            {texts[language].start}
           </Text>
-
-          <View style={styles.line} />
-
-          <Text
-            style={[
-              styles.info,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .playersInfo
-            }
-          </Text>
-
-          <Text
-            style={[
-              styles.info,
-              {
-                fontSize:
-                  textSize - 3
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .timeInfo
-            }
-          </Text>
-
-        </View>
-
-      </View>
-
-      {/* ERROR */}
-      {mensaje !== '' && (
-
-        <Text
-          style={[
-            styles.error,
-            {
-              fontSize:
-                textSize - 1
-            }
-          ]}
-        >
-          {mensaje}
-        </Text>
-
-      )}
-
-      {/* START BUTTON */}
-      <TouchableOpacity
-        onPress={startGame}
-        style={[
-          styles.start,
-          !isHost && {
-            opacity: 0.5
-          }
-        ]}
-        disabled={!isHost}
-      >
-
-        <Text
-          style={{
-            color: 'white',
-            fontSize:
-              textSize + 2,
-            fontWeight: 'bold'
-          }}
-        >
-          {texts[language].start}
-        </Text>
-
-      </TouchableOpacity>
-
-    </View>
-  );
-}
+  
+        </TouchableOpacity>
+  
+      </ScrollView>
+    );
+  }
 
 const styles = StyleSheet.create({
 
   container: {
-    flex: 1,
+    flexGrow: 1,
     flexDirection: 'column',
     backgroundColor: '#14213b',
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    paddingBottom: 40,
   },
 
   container1: {

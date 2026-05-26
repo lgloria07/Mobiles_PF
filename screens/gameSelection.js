@@ -1,31 +1,14 @@
 import { useState, useEffect, useContext } from 'react';
-
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  ScrollView
-} from 'react-native';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView} from 'react-native';
 
 /* Conexion con fireStore */
 import { auth, db } from '../services/firebase';
-
-import {
-  doc,
-  updateDoc,
-  getDoc,
-  arrayRemove,
-  deleteDoc,
-  onSnapshot
-} from 'firebase/firestore';
-
+import {doc,updateDoc,getDoc,arrayRemove,deleteDoc,onSnapshot} from 'firebase/firestore';
 import { signOut as firebaseSignOut } from 'firebase/auth';
 
 import { Ionicons } from '@expo/vector-icons';
 
-// Hook
+// Hook que creamos
 import usePartyPlayers from '../hooks/usePartyPlayers';
 
 import { SettingsContext } from '../services/SettingsContext';
@@ -33,23 +16,12 @@ import { SettingsContext } from '../services/SettingsContext';
 export default function GameSelection({ navigation, route }) {
 
   const [mensaje, setMensaje] = useState('');
-
-  const { code } = route.params;
-
-  const { activePlayers } = usePartyPlayers(code);
-
-  const currentUid = auth.currentUser?.uid;
-
-  const currentPlayer =
-    activePlayers.find(p => p.uid === currentUid);
-
+  const { code } = route.params; // Este codigo lo obtenemos de 
+  const { activePlayers } = usePartyPlayers(code); //Obtenemos los jugadores activos en la fiesta usando hook creado
+  const currentUid = auth.currentUser?.uid; 
+  const currentPlayer =activePlayers.find(p => p.uid === currentUid);
   const isHost = currentPlayer?.isHost || false;
-
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
   /* Traducciones */
   const texts = {
@@ -116,7 +88,7 @@ export default function GameSelection({ navigation, route }) {
   };
 
   /* Navegacion juegos */
-  const charades = () => {
+  const charades = () => { //Para todos los juegos mandamos el codigo para poder identificar la fiesta
     navigation.navigate('rulesCharades', { code });
   };
 
@@ -137,67 +109,45 @@ export default function GameSelection({ navigation, route }) {
     try {
 
       await leaveParty();
-
       await firebaseSignOut(auth);
-
       navigation.replace('login');
-
     } catch (error) {
-
       console.log(error);
     }
   };
 
   const leaveParty = async () => {
-
     try {
-
       const user = auth.currentUser;
-
       if (!user) return;
-
       const partyRef = doc(db, "parties", code);
-
       await updateDoc(partyRef, {
         members: arrayRemove(user.uid)
       });
 
       const updatedSnap = await getDoc(partyRef);
-
       if (!updatedSnap.exists()) return;
-
       const updatedData = updatedSnap.data();
 
-      if (
-        !updatedData.members ||
-        updatedData.members.length === 0
-      ) {
-
+      if (!updatedData.members ||updatedData.members.length === 0) {
         await deleteDoc(partyRef);
       }
-
     } catch (error) {
-
       console.log("leaveParty error:", error);
     }
   };
 
+  // Escuchamos cambios en la fiesta para redirigir a los jugadores cuando el "lider" inicie un juego
   useEffect(() => {
+    const partyRef = doc(db, "parties", code); 
 
-    const partyRef = doc(db, "parties", code);
-
-    const unsubscribe = onSnapshot(
-      partyRef,
-      (snapshot) => {
-
+    const unsubscribe = onSnapshot(partyRef,(snapshot) => {
         if (!snapshot.exists()) return;
 
-        const data = snapshot.data();
-
+        const data = snapshot.data(); 
         if (data.status === "in_progress") {
-
           if (data.game === "tower") {
-            navigation.navigate("tower", { code });
+            navigation.navigate("tower", { code }); // Para que el usuario pueda regresar si se sale
           }
 
           if (data.game === "charades") {
@@ -222,36 +172,16 @@ export default function GameSelection({ navigation, route }) {
   return (
 
     <ScrollView
-      style={styles.container}
-      contentContainerStyle={{
-        alignItems: 'center',
-        paddingBottom: 40,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
+      style={styles.container}contentContainerStyle={{alignItems: 'center',paddingBottom: 40,}}showsVerticalScrollIndicator={false}>
 
       {/* Boton Settings */}
-      <TouchableOpacity
-        style={styles.settingsButton}
-        onPress={() => navigation.navigate('settings')}
-      >
-        <Ionicons
-          name="settings-outline"
-          size={30}
-          color="white"
-        />
+      <TouchableOpacity style={styles.settingsButton}onPress={() => navigation.navigate('settings')}>
+        <Ionicons name="settings-outline" size={30} color="white"/>
       </TouchableOpacity>
 
       {/* Flecha return */}
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.backButton}
-      >
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
+      <TouchableOpacity onPress={() => navigation.goBack()}style={styles.backButton}>
+        <Ionicons name="arrow-back" size={26} color="white"/>
       </TouchableOpacity>
 
       {/* Header */}
@@ -260,26 +190,13 @@ export default function GameSelection({ navigation, route }) {
         {/* Logo */}
         <View style={styles.container11}>
 
-          <Image
-            source={require('../Imagenes/logo.png')}
-            style={{ width: "100%", height: "60%" }}
-          />
+          <Image source={require('../Imagenes/logo.png')}style={{ width: "100%", height: "60%" }}/>
 
-          <Text
-            style={[
-              styles.title,
-              { fontSize: titleSize - 12 }
-            ]}
-          >
+          <Text style={[styles.title,{ fontSize: titleSize - 12 }]}>
             Green Monster
           </Text>
 
-          <Text
-            style={[
-              styles.subtitle,
-              { fontSize: textSize - 3 }
-            ]}
-          >
+          <Text style={[styles.subtitle,{ fontSize: textSize - 3 }]}>
             {texts[language].subtitle}
           </Text>
 
@@ -290,12 +207,7 @@ export default function GameSelection({ navigation, route }) {
 
           <View style={styles.container121}>
 
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontSize: textSize - 3
-              }}
-            >
+            <Text style={{fontWeight: 'bold',fontSize: textSize - 3}}>
               {texts[language].activePlayers}
             </Text>
 
@@ -303,37 +215,16 @@ export default function GameSelection({ navigation, route }) {
 
           <View style={styles.container122}>
 
-            <View
-              style={{
-                flexDirection: 'column',
-                marginTop: 8,
-              }}
-            >
+            <View style={{flexDirection: 'column', marginTop: 8,}}>
 
               {activePlayers.map((player) => (
 
-                <Text
-                  key={player.uid}
-                  style={{
-                    color:
-                      player.isHost
-                        ? '#863535'
-                        : 'black',
-
-                    fontWeight: 'bold',
-
-                    fontSize: textSize - 4,
-                  }}
-                >
+                <Text key={player.uid}style={{color:player.isHost? '#863535': 'black',fontWeight: 'bold',fontSize: textSize - 4,}}>
                   {player.username}
-
-                  {player.uid === currentUid
-                    ? ` ${texts[language].you}`
-                    : ""}
+                  {player.uid === currentUid? ` ${texts[language].you}`: ""} {/* Señalamos al jugador actual */}
                 </Text>
 
               ))}
-
             </View>
 
           </View>
@@ -343,12 +234,7 @@ export default function GameSelection({ navigation, route }) {
       </View>
 
       {/* Codigo */}
-      <Text
-        style={[
-          styles.code,
-          { fontSize: textSize }
-        ]}
-      >
+      <Text style={[styles.code,{ fontSize: textSize }]}>
         {texts[language].partyCode}: {code}
       </Text>
 
@@ -358,12 +244,7 @@ export default function GameSelection({ navigation, route }) {
         <View style={styles.sectionDivider}>
           <View style={styles.line} />
 
-          <Text
-            style={[
-              styles.sectionTitle,
-              { fontSize: textSize - 1 }
-            ]}
-          >
+          <Text style={[styles.sectionTitle,{ fontSize: textSize - 1 }]}>
             {texts[language].onlineGames}
           </Text>
 
@@ -376,38 +257,17 @@ export default function GameSelection({ navigation, route }) {
           <View style={styles.gameCard}>
 
             <View style={styles.imageContainer}>
-              <Image
-                source={require('../Imagenes/tower.png')}
-                style={styles.image}
-              />
+              <Image source={require('../Imagenes/tower.png')}style={styles.image}/>
             </View>
 
             <View style={styles.gameInfo}>
 
-              <Text
-                style={[
-                  styles.gameTitle,
-                  { fontSize: textSize }
-                ]}
-              >
+              <Text style={[styles.gameTitle,{ fontSize: textSize }]}>
                 {texts[language].tower}
               </Text>
 
-              <TouchableOpacity
-                onPress={towerOfNerds}
-                style={[
-                  styles.join,
-                  !isHost && { opacity: 0.4 }
-                ]}
-                disabled={!isHost}
-              >
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: textSize - 2,
-                    fontWeight: 'bold'
-                  }}
-                >
+              <TouchableOpacity onPress={towerOfNerds}style={[styles.join,!isHost && { opacity: 0.4 }]}disabled={!isHost}>
+                <Text style={{color: 'white',fontSize: textSize - 2,fontWeight: 'bold'}}>
                   {texts[language].play}
                 </Text>
               </TouchableOpacity>
@@ -420,38 +280,17 @@ export default function GameSelection({ navigation, route }) {
           <View style={styles.gameCard}>
 
             <View style={styles.imageContainer}>
-              <Image
-                source={require('../Imagenes/who.png')}
-                style={styles.image}
-              />
+              <Image source={require('../Imagenes/who.png')}style={styles.image}/>
             </View>
 
             <View style={styles.gameInfo}>
 
-              <Text
-                style={[
-                  styles.gameTitle,
-                  { fontSize: textSize }
-                ]}
-              >
+              <Text style={[styles.gameTitle,{ fontSize: textSize }]}>
                 {texts[language].whoAmI}
               </Text>
 
-              <TouchableOpacity
-                onPress={whoAmI}
-                style={[
-                  styles.join,
-                  !isHost && { opacity: 0.4 }
-                ]}
-                disabled={!isHost}
-              >
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: textSize - 2,
-                    fontWeight: 'bold'
-                  }}
-                >
+              <TouchableOpacity onPress={whoAmI}style={[styles.join,!isHost && { opacity: 0.4 }]}disabled={!isHost}>
+                <Text style={{color: 'white',fontSize: textSize - 2,fontWeight: 'bold'}}>
                   {texts[language].play}
                 </Text>
               </TouchableOpacity>
@@ -470,12 +309,7 @@ export default function GameSelection({ navigation, route }) {
         <View style={styles.sectionDivider}>
           <View style={styles.line} />
 
-          <Text
-            style={[
-              styles.sectionTitle,
-              { fontSize: textSize - 1 }
-            ]}
-          >
+          <Text style={[styles.sectionTitle,{ fontSize: textSize - 1 }]}>
             {texts[language].offlineGames}
           </Text>
 
@@ -488,38 +322,17 @@ export default function GameSelection({ navigation, route }) {
           <View style={styles.gameCard}>
 
             <View style={styles.imageContainer}>
-              <Image
-                source={require('../Imagenes/charades.png')}
-                style={styles.image}
-              />
+              <Image source={require('../Imagenes/charades.png')}style={styles.image}/>
             </View>
 
             <View style={styles.gameInfo}>
 
-              <Text
-                style={[
-                  styles.gameTitle,
-                  { fontSize: textSize }
-                ]}
-              >
+              <Text style={[styles.gameTitle,{ fontSize: textSize }]}>
                 {texts[language].charades}
               </Text>
 
-              <TouchableOpacity
-                onPress={charades}
-                style={[
-                  styles.join,
-                  !isHost && { opacity: 0.4 }
-                ]}
-                disabled={!isHost}
-              >
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: textSize - 2,
-                    fontWeight: 'bold'
-                  }}
-                >
+              <TouchableOpacity onPress={charades}style={[styles.join,!isHost && { opacity: 0.4 }]}disabled={!isHost}>
+                <Text style={{color: 'white',fontSize: textSize - 2,fontWeight: 'bold'}}>
                   {texts[language].play}
                 </Text>
               </TouchableOpacity>
@@ -532,38 +345,17 @@ export default function GameSelection({ navigation, route }) {
           <View style={styles.gameCard}>
 
             <View style={styles.imageContainer}>
-              <Image
-                source={require('../Imagenes/taboo.png')}
-                style={styles.image}
-              />
+              <Image source={require('../Imagenes/taboo.png')} style={styles.image}/>
             </View>
 
             <View style={styles.gameInfo}>
 
-              <Text
-                style={[
-                  styles.gameTitle,
-                  { fontSize: textSize }
-                ]}
-              >
+              <Text style={[styles.gameTitle,{ fontSize: textSize }]}>
                 {texts[language].taboo}
               </Text>
 
-              <TouchableOpacity
-                onPress={taboo}
-                style={[
-                  styles.join,
-                  !isHost && { opacity: 0.4 }
-                ]}
-                disabled={!isHost}
-              >
-                <Text
-                  style={{
-                    color: 'white',
-                    fontSize: textSize - 2,
-                    fontWeight: 'bold'
-                  }}
-                >
+              <TouchableOpacity onPress={taboo}style={[styles.join,!isHost && { opacity: 0.4 }]}disabled={!isHost}>
+                <Text style={{color: 'white',fontSize: textSize - 2,fontWeight: 'bold'}}>
                   {texts[language].play}
                 </Text>
               </TouchableOpacity>
@@ -577,17 +369,8 @@ export default function GameSelection({ navigation, route }) {
       </View>
 
       {/* Sign Out */}
-      <TouchableOpacity
-        onPress={signOut}
-        style={styles.signOut}
-      >
-        <Text
-          style={{
-            color: 'white',
-            fontSize: textSize - 2,
-            fontWeight: 'bold'
-          }}
-        >
+      <TouchableOpacity onPress={signOut}style={styles.signOut}>
+        <Text style={{ color: 'white',fontSize: textSize - 2,fontWeight: 'bold'}}>
           {texts[language].signOut}
         </Text>
       </TouchableOpacity>

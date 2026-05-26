@@ -1,43 +1,16 @@
-import React, {
-  useContext,
-  useState
-} from 'react';
+import React, {useContext,useState} from 'react';
+import {View,Text,TouchableOpacity,StyleSheet,ScrollView} from 'react-native';
 
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView
-} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import { Ionicons }
-from '@expo/vector-icons';
+import {SettingsContext} from '../services/SettingsContext';
 
-import {
-  SettingsContext
-} from '../services/SettingsContext';
+export default function SettingsScreen({navigation}) {
 
-export default function SettingsScreen({
-  navigation
-}) {
+  const {language,setLanguage,fontSize,setFontSize,textSize,titleSize} = useContext(SettingsContext);
 
-  const {
-    language,
-    setLanguage,
-    fontSize,
-    setFontSize,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
-
-  const [tempLanguage,
-    setTempLanguage] =
-      useState(language);
-
-  const [tempFontSize,
-    setTempFontSize] =
-      useState(fontSize);
+  const [tempLanguage,setTempLanguage] = useState(language);
+  const [tempFontSize,setTempFontSize] = useState(fontSize);
 
   // TEXTS
   const texts = {
@@ -85,13 +58,11 @@ export default function SettingsScreen({
 
   const t = texts[language];
 
-  // APPLY SETTINGS
+  // Aplicamos los cambios al contexto y volvemos atrás
   const applySettings = () => {
 
     setLanguage(tempLanguage);
-
     setFontSize(tempFontSize);
-
     navigation.goBack();
   };
 
@@ -100,229 +71,72 @@ export default function SettingsScreen({
     <View style={styles.container}>
 
       {/* BACK BUTTON */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.goBack()
-        }
-        style={styles.backButton}
-      >
-
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
-
+      <TouchableOpacity onPress={() =>navigation.goBack()}style={styles.backButton}>
+        <Ionicons name="arrow-back" size={26}color="white"/>
       </TouchableOpacity>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
 
         {/* TITLE */}
-        <Text
-          style={[
-            styles.title,
-            { fontSize: titleSize }
-          ]}
-        >
+        <Text style={[ styles.title,{ fontSize: titleSize }]}>
           {t.title}
         </Text>
 
         {/* LANGUAGE */}
-        <Text
-          style={[
-            styles.section,
-            { fontSize: textSize + 4 }
-          ]}
-        >
+        <Text style={[styles.section,{ fontSize: textSize + 4 }]}>
           {t.language}
         </Text>
 
         {/* ENGLISH */}
-        <TouchableOpacity
-          style={[
-            styles.option,
-            tempLanguage === 'English'
-            && styles.selectedOption
-          ]}
-          onPress={() =>
-            setTempLanguage('English')
-          }
-        >
-
-          <Text
-            style={[
-              styles.optionText,
-              { fontSize: textSize }
-            ]}
-          >
-            English
-          </Text>
-
+        <TouchableOpacity style={[ styles.option,tempLanguage === 'English'&& styles.selectedOption]}
+          onPress={() => setTempLanguage('English')}>
+          <Text style={[styles.optionText,{ fontSize: textSize }]}>English</Text>
         </TouchableOpacity>
 
         {/* ESPAÑOL */}
-        <TouchableOpacity
-          style={[
-            styles.option,
-            tempLanguage === 'Español'
-            && styles.selectedOption
-          ]}
-          onPress={() =>
-            setTempLanguage('Español')
-          }
-        >
-
-          <Text
-            style={[
-              styles.optionText,
-              { fontSize: textSize }
-            ]}
-          >
-            Español
-          </Text>
-
+        <TouchableOpacity style={[ styles.option,tempLanguage === 'Español'&& styles.selectedOption]}
+          onPress={() =>setTempLanguage('Español')}>
+          <Text style={[styles.optionText,{ fontSize: textSize }]}>Español</Text>
         </TouchableOpacity>
 
         {/* FRANÇAIS */}
-        <TouchableOpacity
-          style={[
-            styles.option,
-            tempLanguage === 'Français'
-            && styles.selectedOption
-          ]}
-          onPress={() =>
-            setTempLanguage('Français')
-          }
-        >
-
-          <Text
-            style={[
-              styles.optionText,
-              { fontSize: textSize }
-            ]}
-          >
-            Français
-          </Text>
-
+        <TouchableOpacity style={[styles.option,tempLanguage === 'Français'&& styles.selectedOption]}
+          onPress={() => setTempLanguage('Français')}>
+          <Text style={[ styles.optionText,{ fontSize: textSize }]}>Français</Text>
         </TouchableOpacity>
 
         {/* 中文 */}
-        <TouchableOpacity
-          style={[
-            styles.option,
-            tempLanguage === '中文'
-            && styles.selectedOption
-          ]}
-          onPress={() =>
-            setTempLanguage('中文')
-          }
-        >
-
-          <Text
-            style={[
-              styles.optionText,
-              { fontSize: textSize }
-            ]}
-          >
-            中文
-          </Text>
-
+        <TouchableOpacity style={[styles.option,tempLanguage === '中文' && styles.selectedOption]}
+          onPress={() => setTempLanguage('中文')}>
+          <Text style={[styles.optionText,{ fontSize: textSize }]}>中文</Text>
         </TouchableOpacity>
 
         {/* SELECTED LANGUAGE */}
-        <Text
-          style={[
-            styles.selected,
-            { fontSize: textSize - 1 }
-          ]}
-        >
-          {t.selected}: {tempLanguage}
-        </Text>
+        <Text style={[styles.selected,{ fontSize: textSize - 1 }]}>{t.selected}: {tempLanguage}</Text>
 
         {/* FONT SIZE */}
-        <Text
-          style={[
-            styles.section,
-            { fontSize: textSize + 4 }
-          ]}
-        >
+        <Text style={[styles.section,{ fontSize: textSize + 4 }]}>
           {t.fontSize}
         </Text>
 
         {/* SMALL */}
-        <TouchableOpacity
-          style={[
-            styles.option,
-            tempFontSize === 'Small'
-            && styles.selectedOption
-          ]}
-          onPress={() =>
-            setTempFontSize('Small')
-          }
-        >
-
-          <Text
-            style={[
-              styles.optionText,
-              { fontSize: textSize }
-            ]}
-          >
-            {t.small}
-          </Text>
-
+        <TouchableOpacity style={[styles.option,tempFontSize === 'Small'&& styles.selectedOption]}
+          onPress={() =>setTempFontSize('Small')}>
+          <Text style={[styles.optionText,{ fontSize: textSize }]}>{t.small}</Text>
         </TouchableOpacity>
 
         {/* LARGE */}
-        <TouchableOpacity
-          style={[
-            styles.option,
-            tempFontSize === 'Large'
-            && styles.selectedOption
-          ]}
-          onPress={() =>
-            setTempFontSize('Large')
-          }
-        >
-
-          <Text
-            style={[
-              styles.optionText,
-              { fontSize: textSize }
-            ]}
-          >
-            {t.large}
-          </Text>
-
+        <TouchableOpacity style={[styles.option,tempFontSize === 'Large' && styles.selectedOption]}
+        onPress={() =>setTempFontSize('Large')}>
+          <Text style={[styles.optionText,{ fontSize: textSize }]}>{t.large}</Text>
         </TouchableOpacity>
 
-        {/* SELECTED FONT */}
-        <Text
-          style={[
-            styles.selected,
-            { fontSize: textSize - 1 }
-          ]}
-        >
-          {t.selected}: {tempFontSize}
-        </Text>
+        {/* SELECTED FONT SIZE */}
+        <Text style={[styles.selected, { fontSize: textSize - 1 }]}>{t.selected}: {tempFontSize}</Text>
 
         {/* APPLY BUTTON */}
-        <TouchableOpacity
-          style={styles.applyButton}
-          onPress={applySettings}
-        >
-
-          <Text
-            style={[
-              styles.applyText,
-              { fontSize: textSize + 2 }
-            ]}
-          >
-            {t.apply}
-          </Text>
-
+        <TouchableOpacity style={styles.applyButton} onPress={applySettings}>
+          <Text style={[styles.applyText,{ fontSize: textSize + 2 }]}>{t.apply}</Text>
         </TouchableOpacity>
 
       </ScrollView>
