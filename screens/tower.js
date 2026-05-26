@@ -1,73 +1,33 @@
-import React, {
-  useState,
-  useEffect,
-  useContext
-} from 'react';
+import React, {useState,useEffect,useContext} from 'react';
 
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  TextInput,
-  Modal
-} from 'react-native';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView,TextInput,Modal} from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
-import {
-  auth,
-  db
-} from '../services/firebase';
+import {auth,db} from '../services/firebase';
+import {doc,updateDoc,onSnapshot} from 'firebase/firestore';
 
 import usePartyPlayers from '../hooks/usePartyPlayers';
 
-import {
-  useIsFocused
-} from '@react-navigation/native';
+import {useIsFocused} from '@react-navigation/native';
 
-import {
-  doc,
-  updateDoc,
-  onSnapshot
-} from 'firebase/firestore';
+import {SettingsContext} from '../services/SettingsContext';
 
-import {
-  SettingsContext
-} from '../services/SettingsContext';
-
-export default function TowerOfNerds({
-  navigation,
-  route
-}) {
+export default function TowerOfNerds({navigation,route}) {
 
   const { code } = route.params;
 
-  const { activePlayers } =
-    usePartyPlayers(code);
+  const { activePlayers } = usePartyPlayers(code);
 
-  const currentUid =
-    auth.currentUser?.uid;
+  const currentUid = auth.currentUser?.uid;
 
-  const currentPlayer =
-    activePlayers.find(
-      p => p.uid === currentUid
-    );
+  const currentPlayer = activePlayers.find(p => p.uid === currentUid);
 
-  const isHost =
-    currentPlayer?.isHost;
+  const isHost = currentPlayer?.isHost;
 
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
-  // TRANSLATIONS
   const texts = {
-
     English: {
       title: 'TOWER OF NERDS',
       name: 'Name',
@@ -123,50 +83,28 @@ export default function TowerOfNerds({
 
   const t = texts[language];
 
-  const [tower, setTower] =
-    useState([
-      '',
-      '',
-      '',
-      '',
-      '',
-      ''
-    ]);
+  const [tower, setTower] = useState(['','','','','','']);
 
-  const [gameState, setGameState] =
-    useState(null);
+  const [gameState, setGameState] = useState(null);
 
-  const [hasNavigated, setHasNavigated] =
-    useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
 
-  const isFocused =
-    useIsFocused();
+  const isFocused = useIsFocused();
 
-  // UPDATE TOWER INPUT
-  const updateTowerItem = (
-    text,
-    index
-  ) => {
+  // Actualizamos la torre al entrar o volver a la pantalla
+  const updateTowerItem = (text,index) => { 
 
-    const updatedTower = [
-      ...tower
-    ];
-
+    const updatedTower = [...tower];
+  
     updatedTower[index] = text;
-
     setTower(updatedTower);
   };
 
-  // LISTEN FIREBASE
+  // Escuchamos cambios en el estado del juego
   useEffect(() => {
 
-    const unsub =
-      onSnapshot(
-        doc(db, 'parties', code),
-        (snap) => {
-
+    const unsub = onSnapshot(doc(db, 'parties', code),(snap) => { // snap nos da el documento actualizado en tiempo real
           if (!snap.exists()) return;
-
           setGameState(
             snap.data().gameState || null
           );
@@ -177,16 +115,11 @@ export default function TowerOfNerds({
 
   }, [code]);
 
-  // START GUESS
   const handleGuess = async () => {
 
-    if (
-      gameState?.isGuessing ||
-      currentPlayer?.eliminated
-    ) return;
+    if ( gameState?.isGuessing ||currentPlayer?.eliminated) return;
 
-    await updateDoc(
-      doc(db, 'parties', code),
+    await updateDoc(doc(db, 'parties', code),
       {
         gameState: {
           isGuessing: true,
@@ -198,106 +131,53 @@ export default function TowerOfNerds({
     );
   };
 
-  // VOTE
-  const vote = async (
-    value
-  ) => {
+  // Sistema de votacion
+  const vote = async (value) => {
+    if (currentUid ===gameState?.guessingPlayer) return; // Si el jugador es el que adivina, no puede votar
 
-    if (
-      currentUid ===
-      gameState?.guessingPlayer
-    ) return;
+    if (gameState?.votes?.[currentUid] !== undefined) return; // Si ya votó, no puede votar de nuevo
 
-    if (
-      gameState?.votes?.[
-        currentUid
-      ] !== undefined
-    ) return;
-
-    await updateDoc(
-      doc(db, 'parties', code),
-      {
-        [`gameState.votes.${currentUid}`]:
-          value,
-      }
-    );
+    await updateDoc(doc(db, 'parties', code),{ [`gameState.votes.${currentUid}`]:value,}); // Guardamos votos
   };
 
-  // CHECK VOTES
+  // Revisamos votos
   useEffect(() => {
 
-    if (
-      !gameState ||
-      !gameState.isGuessing ||
-      gameState.finished
-    ) return;
+    if (!gameState ||!gameState.isGuessing ||gameState.finished) return;
 
-    const votes =
-      gameState.votes || {};
+    const votes = gameState.votes || {};
 
-    const totalPlayers =
-      activePlayers.length - 1;
+    const totalPlayers = activePlayers.length - 1;
 
-    if (
-      Object.keys(votes).length ===
-        totalPlayers &&
-      totalPlayers > 0
-    ) {
+    if (Object.keys(votes).length ===totalPlayers &&totalPlayers > 0) {
+      const values = Object.values(votes);
+      const yes = values.filter(v => v).length;
+      const no = values.filter(v => !v).length;
+      const result = yes > no;
 
-      const values =
-        Object.values(votes);
-
-      const yes =
-        values.filter(v => v).length;
-
-      const no =
-        values.filter(v => !v).length;
-
-      const result =
-        yes > no;
-
-      updateDoc(
-        doc(db, 'parties', code),
-        {
+      updateDoc(doc(db, 'parties', code),{
           gameState: {
             ...gameState,
             finished: true,
-            winner: result
-              ? gameState.guessingPlayer
-              : null,
-            loser: !result
-              ? gameState.guessingPlayer
-              : null,
+            winner: result ? gameState.guessingPlayer : null, // Si es positivo gana
+            loser: !result ? gameState.guessingPlayer : null, //Si es negativo pierde
           }
         }
       );
     }
-
   }, [gameState, activePlayers]);
 
-  const guessingPlayer =
-    activePlayers.find(
-      p =>
-        p.uid ===
-        gameState?.guessingPlayer
-    );
+  const guessingPlayer = activePlayers.find( p => p.uid === gameState?.guessingPlayer);
 
-  // RESET GAME
+  // Reiniciar juego
   useEffect(() => {
+    if (!gameState?.finished || !isHost) return;
 
-    if (
-      !gameState?.finished ||
-      !isHost
-    ) return;
-
-    const timeout =
-      setTimeout(async () => {
+    const timeout = setTimeout(async () => {
 
         if (gameState.winner) {
 
-          await updateDoc(
-            doc(db, 'parties', code),
-            {
+          await updateDoc(doc(db, 'parties', code),{
               status: 'waiting',
               game: null,
               gameState: null,
@@ -306,9 +186,7 @@ export default function TowerOfNerds({
 
         } else {
 
-          await updateDoc(
-            doc(db, 'parties', code),
-            {
+          await updateDoc( doc(db, 'parties', code),{
               gameState: null
             }
           );
@@ -321,25 +199,15 @@ export default function TowerOfNerds({
 
   }, [gameState, isHost]);
 
-  // NAVIGATION
+  // Navegar a selección de juego después de finalizar
   useEffect(() => {
 
-    if (
-      gameState?.finished &&
-      gameState?.winner &&
-      !hasNavigated
-    ) {
+    if ( gameState?.finished && gameState?.winner && !hasNavigated) {
 
       setHasNavigated(true);
 
-      const timeout =
-        setTimeout(() => {
-
-          navigation.replace(
-            'gameSelection',
-            { code }
-          );
-
+      const timeout = setTimeout(() => {
+          navigation.replace('gameSelection', { code });
         }, 3000);
 
       return () =>
@@ -352,85 +220,37 @@ export default function TowerOfNerds({
 
     <View style={styles.container}>
 
-      {/* GUESS MODAL */}
-      {gameState?.isGuessing &&
-        !gameState?.finished &&
-        gameState.guessingPlayer !== currentUid && (
-
-          <Modal
-            transparent
-            animationType="fade"
-          >
-
+      {/* Adivinar */}
+      {gameState?.isGuessing && !gameState?.finished && gameState.guessingPlayer !== currentUid && (
+          <Modal transparent animationType="fade">
             <View style={styles.modalBackground}>
 
               <View style={styles.modalCard}>
 
-                <Text
-                  style={[
-                    styles.modalTitle,
-                    {
-                      fontSize:
-                        textSize + 4
-                    }
-                  ]}
-                >
-                  {
-                    guessingPlayer?.username ||
-                    'Player'
-                  } {t.guessing}
+                <Text style={[styles.modalTitle,{fontSize: textSize + 4}]}>
+                  { guessingPlayer?.username || 'Player'} {t.guessing}
                 </Text>
 
-                <Text
-                  style={[
-                    styles.modalText,
-                    {
-                      fontSize:
-                        textSize
-                    }
-                  ]}
-                >
+                <Text style={[styles.modalText,{fontSize: textSize}]}>
                   {t.vote}
                 </Text>
 
-                <View
-                  style={{
-                    flexDirection: 'row'
-                  }}
-                >
+                <View style={{flexDirection: 'row'}}>
 
-                  <TouchableOpacity
-                    onPress={() =>
-                      vote(true)
-                    }
-                    style={{
-                      margin: 10
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 30
-                      }}
-                    >
-                      ✔️
+                  <TouchableOpacity onPress={() => vote(true)} style={{margin: 10}}>
+
+                    <Text style={{fontSize: 30}}>
+                      ✓
                     </Text>
+
                   </TouchableOpacity>
 
-                  <TouchableOpacity
-                    onPress={() =>
-                      vote(false)
-                    }
-                    style={{
-                      margin: 10
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontSize: 30
-                      }}
-                    >
-                      ❌
+                  <TouchableOpacity onPress={() => vote(false)} style={{margin: 10}}>
+
+                    <Text style={{fontSize: 30}}>
+                      X
                     </Text>
+
                   </TouchableOpacity>
 
                 </View>
@@ -442,30 +262,17 @@ export default function TowerOfNerds({
           </Modal>
       )}
 
-      {/* RESULT MODAL */}
+      {/* Resultado */}
       {gameState?.finished && (
 
-        <Modal
-          transparent
-          animationType="fade"
-        >
+        <Modal transparent animationType="fade">
 
           <View style={styles.modalBackground}>
 
             <View style={styles.modalCard}>
 
-              <Text
-                style={[
-                  styles.modalTitle,
-                  {
-                    fontSize:
-                      textSize + 4
-                  }
-                ]}
-              >
-                {gameState.winner
-                  ? `${guessingPlayer?.username} ${t.won}`
-                  : t.wrongGuess}
+              <Text style={[styles.modalTitle,{fontSize: textSize + 4}]}>
+                {gameState.winner ? `${guessingPlayer?.username} ${t.won}` : t.wrongGuess}
               </Text>
 
             </View>
@@ -476,137 +283,49 @@ export default function TowerOfNerds({
       )}
 
       {/* BACK BUTTON */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.goBack()
-        }
-        style={styles.backButton}
-      >
-
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
-
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={26} color="white"/>
       </TouchableOpacity>
 
       {/* HEADER */}
       <View style={styles.header}>
 
-        <Image
-          source={require('../Imagenes/logo.png')}
-          style={styles.logo}
-        />
+        <Image source={require('../Imagenes/logo.png')} style={styles.logo}/>
 
-        <Text
-          style={[
-            styles.title,
-            {
-              fontSize:
-                titleSize - 2
-            }
-          ]}
-        >
+        <Text style={[styles.title,{fontSize: titleSize - 2}]}>
           {t.title}
         </Text>
 
       </View>
 
-      <ScrollView
-        contentContainerStyle={
-          styles.scrollContent
-        }
-      >
+      <ScrollView contentContainerStyle={ styles.scrollContent}>
 
         {/* PLAYERS */}
-        <View
-          style={
-            styles.playersContainer
-          }
-        >
+        <View style={styles.playersContainer}>
 
-          <View
-            style={
-              styles.playersHeader
-            }
-          >
+          <View style={styles.playersHeader}>
 
-            <Text
-              style={[
-                styles.headerText,
-                {
-                  fontSize:
-                    textSize
-                }
-              ]}
-            >
+            <Text style={[styles.headerText,{fontSize: textSize}]}>
               {t.name}
             </Text>
 
-            <Text
-              style={[
-                styles.headerText,
-                {
-                  fontSize:
-                    textSize
-                }
-              ]}
-            >
+            <Text style={[styles.headerText,{fontSize: textSize}]}>
               {t.category}
             </Text>
 
           </View>
 
-          {activePlayers.map(
-            player => (
+          {activePlayers.map(player => (
 
-              <View
-                key={player.uid}
-                style={
-                  styles.playerRow
-                }
-              >
+              <View key={player.uid} style={styles.playerRow}>
 
-                <Text
-                  style={[
-                    styles.playerName,
-                    {
-                      fontSize:
-                        textSize - 1
-                    },
-                    player.uid ===
-                      currentUid &&
-                      styles.currentPlayer,
-                    player.eliminated && {
-                      color: 'red'
-                    }
-                  ]}
-                >
-                  {player.username}
-
-                  {player.uid ===
-                  currentUid
-                    ? ` ${t.you}`
-                    : ''}
+                <Text style={[styles.playerName,{fontSize:textSize - 1},
+                    player.uid === currentUid && styles.currentPlayer,player.eliminated && {color: 'red'} ]}>
+                  {player.username}{player.uid ===currentUid? ` ${t.you}`: ''}
                 </Text>
 
-                <Text
-                  style={[
-                    styles.playerCategory,
-                    {
-                      fontSize:
-                        textSize - 1
-                    }
-                  ]}
-                >
-                  {player.eliminated
-                    ? player.category
-                    : player.uid ===
-                      currentUid
-                    ? '????'
-                    : player.category ||
-                      '....'}
+                <Text style={[ styles.playerCategory,{fontSize:textSize - 1}]}>
+                  {player.eliminated? player.category: player.uid === currentUid ? '????' : player.category || '....'}
                 </Text>
 
               </View>
@@ -615,60 +334,26 @@ export default function TowerOfNerds({
 
         </View>
 
-        {/* TOWER */}
+        {/* Torre */}
         <View style={styles.tower}>
 
-          {tower.map(
-            (item, index) => (
+          {tower.map((item,index) => (
 
-              <TextInput
-                key={index}
-                style={[
-                  styles.towerInput,
-                  {
-                    fontSize:
-                      textSize
-                  }
-                ]}
+              <TextInput key={index} style={[styles.towerInput,{fontSize:textSize}]}
                 placeholder={`${t.character} ${index + 1}`}
                 placeholderTextColor="#64748B"
                 value={item}
-                onChangeText={text =>
-                  updateTowerItem(
-                    text,
-                    index
-                  )
-                }
-              />
+                onChangeText={text => updateTowerItem(text,index)}/>
             )
           )}
 
         </View>
 
-        {/* GUESS BUTTON */}
-        <TouchableOpacity
-          onPress={handleGuess}
-          style={[
-            styles.guessButton,
-            gameState?.isGuessing && {
-              opacity: 0.5
-            }
-          ]}
-          disabled={
-            gameState?.isGuessing ||
-            currentPlayer?.eliminated
-          }
-        >
+        {/* Boton de adivinar */}
+        <TouchableOpacity onPress={handleGuess} style={[styles.guessButton,gameState?.isGuessing && {opacity: 0.5 }]}
+          disabled={ gameState?.isGuessing || currentPlayer?.eliminated}>
 
-          <Text
-            style={[
-              styles.guessButtonText,
-              {
-                fontSize:
-                  textSize + 2
-              }
-            ]}
-          >
+          <Text style={[styles.guessButtonText,{fontSize: textSize + 2}]}>
             {t.guess}
           </Text>
 
@@ -680,152 +365,151 @@ export default function TowerOfNerds({
   );
 }
 
-const styles =
-  StyleSheet.create({
+const styles = StyleSheet.create({
 
-    container: {
-      flex: 1,
-      backgroundColor: '#0F172A',
-      alignItems: 'center',
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+    alignItems: 'center',
+  },
 
-    backButton: {
-      position: 'absolute',
-      top: 50,
-      left: 20,
-      zIndex: 10,
-      backgroundColor: '#ffffff20',
-      padding: 8,
-      borderRadius: 50,
-    },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    backgroundColor: '#ffffff20',
+    padding: 8,
+    borderRadius: 50,
+  },
 
-    header: {
-      width: '100%',
-      alignItems: 'center',
-      marginTop: 55,
-      marginBottom: 10,
-    },
+  header: {
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 55,
+    marginBottom: 10,
+  },
 
-    logo: {
-      width: 120,
-      height: 120,
-      resizeMode: 'contain',
-      marginBottom: -10,
-    },
+  logo: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
+    marginBottom: -10,
+  },
 
-    title: {
-      color: '#34D36E',
-      fontWeight: 'bold',
-      marginTop: -5,
-      textAlign: 'center'
-    },
+  title: {
+    color: '#34D36E',
+    fontWeight: 'bold',
+    marginTop: -5,
+    textAlign: 'center'
+  },
 
-    scrollContent: {
-      width: '100%',
-      alignItems: 'center',
-      paddingBottom: 40,
-    },
+  scrollContent: {
+    width: '100%',
+    alignItems: 'center',
+    paddingBottom: 40,
+  },
 
-    playersContainer: {
-      width: '90%',
-      backgroundColor: '#1E293B',
-      borderRadius: 16,
-      padding: 15,
-      marginBottom: 25,
-    },
+  playersContainer: {
+    width: '90%',
+    backgroundColor: '#1E293B',
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 25,
+  },
 
-    playersHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 12,
-      paddingBottom: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: '#ffffff20',
-    },
+  playersHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ffffff20',
+  },
 
-    headerText: {
-      color: '#5FBA80',
-      fontWeight: 'bold',
-      width: '48%',
-    },
+  headerText: {
+    color: '#5FBA80',
+    fontWeight: 'bold',
+    width: '48%',
+  },
 
-    playerRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginBottom: 10,
-    },
+  playerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
 
-    playerName: {
-      color: 'white',
-      width: '48%',
-    },
+  playerName: {
+    color: 'white',
+    width: '48%',
+  },
 
-    currentPlayer: {
-      color: '#FF6B6B',
-      fontWeight: 'bold',
-    },
+  currentPlayer: {
+    color: '#FF6B6B',
+    fontWeight: 'bold',
+  },
 
-    playerCategory: {
-      color: '#C2C6CE',
-      width: '48%',
-    },
+  playerCategory: {
+    color: '#C2C6CE',
+    width: '48%',
+  },
 
-    tower: {
-      width: '75%',
-      alignItems: 'center'
-    },
+  tower: {
+    width: '75%',
+    alignItems: 'center'
+  },
 
-    towerInput: {
-      width: 220,
-      height: 52,
-      borderWidth: 2,
-      borderColor: '#E5E7EB',
-      backgroundColor: '#F8FAFC',
-      borderRadius: 10,
-      marginBottom: 10,
-      paddingHorizontal: 12,
-      color: '#0F172A',
-      fontWeight: 'bold',
-    },
+  towerInput: {
+    width: 220,
+    height: 52,
+    borderWidth: 2,
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    color: '#0F172A',
+    fontWeight: 'bold',
+  },
 
-    guessButton: {
-      marginTop: 30,
-      width: 160,
-      height: 52,
-      backgroundColor: '#33A548',
-      borderRadius: 12,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
+  guessButton: {
+    marginTop: 30,
+    width: 160,
+    height: 52,
+    backgroundColor: '#33A548',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
-    guessButtonText: {
-      color: 'white',
-      fontWeight: 'bold',
-    },
+  guessButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
 
-    modalBackground: {
-      flex: 1,
-      backgroundColor:
-        'rgba(0,0,0,0.7)',
-      justifyContent: 'center',
-      alignItems: 'center'
-    },
+  modalBackground: {
+    flex: 1,
+    backgroundColor:
+      'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
 
-    modalCard: {
-      backgroundColor: 'white',
-      padding: 20,
-      borderRadius: 12,
-      alignItems: 'center',
-      width: '80%'
-    },
+  modalCard: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 12,
+    alignItems: 'center',
+    width: '80%'
+  },
 
-    modalTitle: {
-      fontWeight: 'bold',
-      textAlign: 'center'
-    },
+  modalTitle: {
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
 
-    modalText: {
-      marginVertical: 10,
-      textAlign: 'center'
-    }
-  });
+  modalText: {
+    marginVertical: 10,
+    textAlign: 'center'
+  }
+});

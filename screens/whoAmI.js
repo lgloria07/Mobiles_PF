@@ -1,258 +1,115 @@
-import {
-  useState,
-  useEffect,
-  useContext
-} from 'react';
+import {useState,useEffect,useContext} from 'react';
+import {StyleSheet,Text,View,Image,TouchableOpacity,ScrollView,Modal} from 'react-native';
 
-import {
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  Modal
-} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import { Ionicons }
-from '@expo/vector-icons';
+import {auth,db} from '../services/firebase';
+import {doc,onSnapshot,updateDoc} from 'firebase/firestore';
 
-import {
-  auth,
-  db
-} from '../services/firebase';
+import usePartyPlayers from '../hooks/usePartyPlayers';
 
-import usePartyPlayers
-from '../hooks/usePartyPlayers';
+import {characterImages} from '../data/characterImages';
 
-import {
-  doc,
-  onSnapshot,
-  updateDoc
-} from 'firebase/firestore';
+import {useIsFocused} from '@react-navigation/native';
 
-import {
-  characterImages
-} from '../data/characterImages';
+import {SettingsContext} from '../services/SettingsContext';
 
-import {
-  useIsFocused
-} from '@react-navigation/native';
-
-import {
-  SettingsContext
-} from '../services/SettingsContext';
-
-export default function WhoAmI({
-  navigation,
-  route
-}) {
+export default function WhoAmI({navigation,route}) {
 
   const { code } = route.params;
 
-  const {
-    activePlayers
-  } = usePartyPlayers(code);
+  const {activePlayers} = usePartyPlayers(code);
 
-  const currentUid =
-    auth.currentUser?.uid;
+  const currentUid = auth.currentUser?.uid;
 
-  const currentPlayer =
-    activePlayers.find(
-      p => p.uid === currentUid
-    );
+  const currentPlayer = activePlayers.find(p => p.uid === currentUid);
 
-  const isHost =
-    currentPlayer?.isHost;
+  const isHost = currentPlayer?.isHost;
 
-  const {
-    language,
-    textSize,
-    titleSize
-  } = useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
   const texts = {
 
     English: {
-
-      title:
-        'Who Am I?',
-
-      players:
-        'Players',
-
-      you:
-        '(You)',
-
-      yourCharacter:
-        'Your Character',
-
-      waiting:
-        'Waiting for votes...',
-
-      guessing:
-        'is guessing...',
-
-      vote:
-        'Vote if this player is correct',
-
-      won:
-        'has won!',
-
-      wrong:
-        'guessed wrong!',
-
-      guess:
-        'Guess',
+      title:'Who Am I?',
+      players:'Players',
+      you:'(You)',
+      yourCharacter:'Your Character',
+      waiting:'Waiting for votes...',
+      guessing:'is guessing...',
+      vote:'Vote if this player is correct',
+      won:'has won!',
+      wrong:'guessed wrong!',
+      guess:'Guess',
     },
 
     Español: {
-
-      title:
-        '¿Quién Soy?',
-
-      players:
-        'Jugadores',
-
-      you:
-        '(Tú)',
-
-      yourCharacter:
-        'Tu Personaje',
-
-      waiting:
-        'Esperando votos...',
-
-      guessing:
-        'está adivinando...',
-
-      vote:
-        'Vota si este jugador acertó',
-
-      won:
-        'ha ganado!',
-
-      wrong:
-        'adivinó mal!',
-
-      guess:
-        'Adivinar',
+      title:'¿Quién Soy?',
+      players:'Jugadores',
+      you:'(Tú)',
+      yourCharacter:'Tu Personaje',
+      waiting:'Esperando votos...',
+      guessing:'está adivinando...',
+      vote:'Vota si este jugador acertó',
+      won:'ha ganado!',
+      wrong:'adivinó mal!',
+      guess:'Adivinar',
     },
 
     Français: {
-
-      title:
-        'Qui Suis-Je ?',
-
-      players:
-        'Joueurs',
-
-      you:
-        '(Vous)',
-
-      yourCharacter:
-        'Votre Personnage',
-
-      waiting:
-        'En attente des votes...',
-
-      guessing:
-        'est en train de deviner...',
-
-      vote:
-        'Votez si ce joueur a raison',
-
-      won:
-        'a gagné !',
-
-      wrong:
-        's’est trompé !',
-
-      guess:
-        'Deviner',
+      title:'Qui Suis-Je ?',
+      players:'Joueurs',
+      you:'(Vous)',
+      yourCharacter:'Votre Personnage',
+      waiting:'En attente des votes...',
+      guessing:'est en train de deviner...',
+      vote:'Votez si ce joueur a raison',
+      won:'a gagné !',
+      wrong:'s’est trompé !',
+      guess:'Deviner',
     },
 
     中文: {
-
-      title:
-        '我是谁？',
-
-      players:
-        '玩家',
-
-      you:
-        '(你)',
-
-      yourCharacter:
-        '你的角色',
-
-      waiting:
-        '等待投票中...',
-
-      guessing:
-        '正在猜测...',
-
-      vote:
-        '请投票该玩家是否猜对',
-
-      won:
-        '赢了！',
-
-      wrong:
-        '猜错了！',
-
-      guess:
-        '猜测',
+      title:'我是谁？',
+      players:'玩家',
+      you:'(你)',
+      yourCharacter:'你的角色',
+      waiting:'等待投票中...',
+      guessing:'正在猜测...',
+      vote:'请投票该玩家是否猜对',
+      won:'赢了！',
+      wrong:'猜错了！',
+      guess:'猜测',
     }
   };
 
-  const [gameState, setGameState] =
-    useState(null);
+  const [gameState, setGameState] = useState(null);
 
-  const [hasNavigated, setHasNavigated] =
-    useState(false);
+  const [hasNavigated, setHasNavigated] = useState(false);
 
-  const isFocused =
-    useIsFocused();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-
-    if (!gameState) {
-
-      setHasNavigated(false);
-    }
-
+    if (!gameState) setHasNavigated(false);
   }, [gameState]);
 
-  const [characters, setCharacters] =
-    useState([]);
+  const [characters, setCharacters] = useState([]);
 
-  const [myCharacter, setMyCharacter] =
-    useState(null);
+  const [myCharacter, setMyCharacter] = useState(null);
 
-  const [discarded, setDiscarded] =
-    useState([]);
+  const [discarded, setDiscarded] = useState([]);
 
   useEffect(() => {
 
-    const unsub =
-      onSnapshot(
-        doc(db, 'parties', code),
-        (snap) => {
+    const unsub = onSnapshot(doc(db, 'parties', code),(snap) => {
 
-          if (!snap.exists())
-            return;
+          if (!snap.exists()) return;
 
-          const data =
-            snap.data();
+          const data = snap.data();
 
-          setCharacters(
-            data.charactersPool || []
-          );
+          setCharacters(data.charactersPool || []);
 
-          setGameState(
-            data.gameState || null
-          );
+          setGameState(data.gameState || null);
         }
       );
 
@@ -262,29 +119,15 @@ export default function WhoAmI({
 
   useEffect(() => {
 
-    if (!currentUid)
-      return;
+    if (!currentUid) return;
 
-    const unsub =
-      onSnapshot(
-        doc(
-          db,
-          'parties',
-          code,
-          'players',
-          currentUid
-        ),
-        (snap) => {
+    const unsub = onSnapshot(doc(db,'parties',code,'players',currentUid),(snap) => {
 
-          if (!snap.exists())
-            return;
+          if (!snap.exists()) return;
 
-          const data =
-            snap.data();
+          const data = snap.data();
 
-          setMyCharacter(
-            data.character || null
-          );
+          setMyCharacter(data.character || null);
         }
       );
 
@@ -296,37 +139,26 @@ export default function WhoAmI({
 
     setDiscarded((prev) => {
 
-      if (
-        prev.includes(char.name)
-      ) {
+      if (prev.includes(char.name)) {
 
-        return prev.filter(
-          name =>
-            name !== char.name
-        );
+        return prev.filter(name => name !== char.name);
 
       } else {
 
-        return [
-          ...prev,
-          char.name
-        ];
+        return [...prev,char.name];
       }
     });
   };
 
   const handleGuess = async () => {
 
-    if (gameState?.isGuessing)
-      return;
+    if (gameState?.isGuessing) return;
 
-    await updateDoc(
-      doc(db, 'parties', code),
+    await updateDoc(doc(db, 'parties', code),
       {
         gameState: {
           isGuessing: true,
-          guessingPlayer:
-            currentUid,
+          guessingPlayer: currentUid,
           votes: {},
           finished: false,
         },
@@ -336,78 +168,40 @@ export default function WhoAmI({
 
   const vote = async (value) => {
 
-    if (
-      currentUid ===
-      gameState?.guessingPlayer
-    ) return;
+    if (currentUid === gameState?.guessingPlayer) return;
 
-    if (
-      gameState?.votes?.[
-        currentUid
-      ] !== undefined
-    ) return;
+    if (gameState?.votes?.[currentUid] !== undefined) return;
 
-    await updateDoc(
-      doc(db, 'parties', code),
-      {
-        [`gameState.votes.${currentUid}`]:
-          value,
-      }
-    );
+    await updateDoc(doc(db, 'parties', code),{[`gameState.votes.${currentUid}`]: value,});
   };
 
   useEffect(() => {
 
-    const finishVoting =
-      async () => {
+    const finishVoting = async () => {
 
-        if (
-          !gameState ||
-          !gameState.isGuessing ||
-          gameState.finished
-        ) return;
+        if (!gameState || !gameState.isGuessing || gameState.finished) return;
 
-        const votes =
-          gameState.votes || {};
+        const votes = gameState.votes || {};
 
-        const totalPlayers =
-          activePlayers.length - 1;
+        const totalPlayers = activePlayers.length - 1;
 
-        if (
-          Object.keys(votes).length ===
-            totalPlayers &&
-          totalPlayers > 0
-        ) {
+        if (Object.keys(votes).length === totalPlayers && totalPlayers > 0) {
 
-          const values =
-            Object.values(votes);
+          const values = Object.values(votes);
 
-          const yes =
-            values.filter(v => v)
-            .length;
+          const yes = values.filter(v => v).length;
 
-          const no =
-            values.filter(v => !v)
-            .length;
+          const no = values.filter(v => !v).length;
 
-          const result =
-            yes > no;
+          const result = yes > no;
 
-          await updateDoc(
-            doc(db, 'parties', code),
+          await updateDoc(doc(db, 'parties', code),
             {
               gameState: {
                 ...gameState,
                 finished: true,
-                winner:
-                  result
-                    ? gameState.guessingPlayer
-                    : null,
-
-                loser:
-                  !result
-                    ? gameState.guessingPlayer
-                    : null,
+                winner: result ? gameState.guessingPlayer : null,
+                loser: !result ? gameState.guessingPlayer : null,
               }
             }
           );
@@ -418,31 +212,17 @@ export default function WhoAmI({
 
   }, [gameState, activePlayers]);
 
-  const guessingPlayer =
-    activePlayers.find(
-      p =>
-        p.uid ===
-        gameState?.guessingPlayer
-    );
+  const guessingPlayer = activePlayers.find(p => p.uid === gameState?.guessingPlayer);
 
   useEffect(() => {
 
-    if (
-      !gameState?.finished ||
-      !isHost
-    ) return;
+    if (!gameState?.finished || !isHost) return;
 
-    const timeout =
-      setTimeout(async () => {
+    const timeout = setTimeout(async () => {
 
         if (gameState.winner) {
 
-          await updateDoc(
-            doc(
-              db,
-              'parties',
-              code
-            ),
+          await updateDoc(doc(db,'parties',code),
             {
               status: 'waiting',
               game: null,
@@ -452,12 +232,7 @@ export default function WhoAmI({
 
         } else {
 
-          await updateDoc(
-            doc(
-              db,
-              'parties',
-              code
-            ),
+          await updateDoc(doc(db,'parties',code),
             {
               gameState: null
             }
@@ -466,82 +241,44 @@ export default function WhoAmI({
 
       }, 3000);
 
-    return () =>
-      clearTimeout(timeout);
+    return () => clearTimeout(timeout);
 
   }, [gameState, isHost]);
 
   useEffect(() => {
 
-    if (!isFocused)
-      return;
+    if (!isFocused) return;
 
-    if (
-      gameState?.finished &&
-      gameState?.winner &&
-      !hasNavigated
-    ) {
+    if (gameState?.finished && gameState?.winner && !hasNavigated) {
 
       setHasNavigated(true);
 
-      const timeout =
-        setTimeout(() => {
+      const timeout = setTimeout(() => {
 
-          navigation.replace(
-            'gameSelection',
-            { code }
-          );
+          navigation.replace('gameSelection',{ code });
 
         }, 3000);
 
-      return () =>
-        clearTimeout(timeout);
+      return () => clearTimeout(timeout);
     }
 
-  }, [
-    gameState,
-    hasNavigated,
-    isFocused,
-    navigation,
-    code
-  ]);
+  }, [gameState,hasNavigated,isFocused,navigation,code]);
 
   return (
 
     <View style={styles.container}>
 
-      {/* WAITING MODAL */}
-      {gameState?.isGuessing &&
-        !gameState?.finished &&
-        gameState.guessingPlayer === currentUid && (
+      {/* Modal para esperar votación */}
+      {gameState?.isGuessing && !gameState?.finished && gameState.guessingPlayer === currentUid && (
 
-          <Modal
-            transparent
-            animationType="fade"
-          >
+          <Modal transparent animationType="fade">
 
-            <View style={{
-              flex:1,
-              justifyContent:'center',
-              alignItems:'center',
-              backgroundColor:'rgba(0,0,0,0.7)'
-            }}>
+            <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:'rgba(0,0,0,0.7)'}}>
 
-              <View style={{
-                backgroundColor:'white',
-                padding:20,
-                borderRadius:10,
-                alignItems:'center'
-              }}>
+              <View style={{backgroundColor:'white',padding:20,borderRadius:10,alignItems:'center'}}>
 
-                <Text style={{
-                  fontSize:textSize + 2,
-                  fontWeight:'bold'
-                }}>
-                  {
-                    texts[language]
-                      .waiting
-                  }
+                <Text style={{fontSize:textSize + 2,fontWeight:'bold'}}>
+                  {texts[language].waiting}
                 </Text>
 
               </View>
@@ -552,75 +289,38 @@ export default function WhoAmI({
       )}
 
       {/* VOTE MODAL */}
-      {gameState?.isGuessing &&
-        !gameState?.finished &&
-        gameState.guessingPlayer !== currentUid && (
+      {gameState?.isGuessing && !gameState?.finished && gameState.guessingPlayer !== currentUid && (
 
-          <Modal
-            transparent
-            animationType="fade"
-          >
+          <Modal transparent animationType="fade">
 
-            <View style={{
-              flex:1,
-              backgroundColor:'rgba(0,0,0,0.7)',
-              justifyContent:'center',
-              alignItems:'center'
-            }}>
+            <View style={{flex:1,backgroundColor:'rgba(0,0,0,0.7)',justifyContent:'center',alignItems:'center'}}>
 
-              <View style={{
-                backgroundColor:'white',
-                padding:20,
-                borderRadius:10,
-                alignItems:'center'
-              }}>
+              <View style={{backgroundColor:'white',padding:20,borderRadius:10,alignItems:'center'}}>
 
-                <Text style={{
-                  fontWeight:'bold',
-                  fontSize:textSize
-                }}>
-                  {
-                    guessingPlayer?.username
-                  } {
-                    texts[language]
-                      .guessing
-                  }
+                <Text style={{fontWeight:'bold',fontSize:textSize}}>
+                  {guessingPlayer?.username} {texts[language].guessing}
                 </Text>
 
-                <Text style={{
-                  marginVertical:10,
-                  textAlign:'center'
-                }}>
-                  {
-                    texts[language]
-                      .vote
-                  }
+                <Text style={{marginVertical:10,textAlign:'center'}}>
+                  {texts[language].vote}
                 </Text>
 
-                <View style={{
-                  flexDirection:'row'
-                }}>
+                <View style={{flexDirection:'row'}}>
 
-                  <TouchableOpacity
-                    onPress={() => vote(true)}
-                    style={{margin:10}}
-                  >
-                    <Text style={{
-                      fontSize:30
-                    }}>
-                      ✔️
+                  <TouchableOpacity onPress={() => vote(true)} style={{margin:10}}>
+
+                    <Text style={{fontSize:30}}>
+                      ✓
                     </Text>
+
                   </TouchableOpacity>
 
-                  <TouchableOpacity
-                    onPress={() => vote(false)}
-                    style={{margin:10}}
-                  >
-                    <Text style={{
-                      fontSize:30
-                    }}>
-                      ❌
+                  <TouchableOpacity onPress={() => vote(false)} style={{margin:10}}>
+
+                    <Text style={{fontSize:30}}>
+                      X
                     </Text>
+
                   </TouchableOpacity>
 
                 </View>
@@ -635,32 +335,15 @@ export default function WhoAmI({
       {/* RESULT MODAL */}
       {gameState?.finished && (
 
-        <Modal
-          transparent
-          animationType="fade"
-        >
+        <Modal transparent animationType="fade">
 
-          <View style={{
-            flex:1,
-            justifyContent:'center',
-            alignItems:'center',
-            backgroundColor:'rgba(0,0,0,0.7)'
-          }}>
+          <View style={{flex:1,justifyContent:'center',alignItems:'center',backgroundColor:'rgba(0,0,0,0.7)'}}>
 
-            <View style={{
-              backgroundColor:'white',
-              padding:20,
-              borderRadius:10
-            }}>
+            <View style={{backgroundColor:'white',padding:20,borderRadius:10}}>
 
-              <Text style={{
-                fontSize:textSize + 2,
-                fontWeight:'bold'
-              }}>
+              <Text style={{fontSize:textSize + 2,fontWeight:'bold'}}>
 
-                {gameState.winner
-                  ? `${guessingPlayer?.username} ${texts[language].won}`
-                  : `${guessingPlayer?.username} ${texts[language].wrong}`}
+                {gameState.winner ? `${guessingPlayer?.username} ${texts[language].won}` : `${guessingPlayer?.username} ${texts[language].wrong}`}
 
               </Text>
 
@@ -672,91 +355,39 @@ export default function WhoAmI({
       )}
 
       {/* BACK */}
-      <TouchableOpacity
-        onPress={() =>
-          navigation.goBack()
-        }
-        style={styles.backButton}
-      >
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
 
-        <Ionicons
-          name="arrow-back"
-          size={26}
-          color="white"
-        />
+        <Ionicons name="arrow-back" size={26} color="white"/>
 
       </TouchableOpacity>
 
       {/* HEADER */}
       <View style={styles.header}>
 
-        <Image
-          source={require('../Imagenes/logo.png')}
-          style={styles.logo}
-        />
+        <Image source={require('../Imagenes/logo.png')} style={styles.logo}/>
 
-        <Text
-          style={[
-            styles.title,
-            {
-              fontSize:
-                titleSize - 10
-            }
-          ]}
-        >
-          {
-            texts[language]
-              .title
-          }
+        <Text style={[styles.title,{fontSize:titleSize - 10}]}>
+          {texts[language].title}
         </Text>
 
       </View>
 
-      <ScrollView
-        contentContainerStyle={
-          styles.scrollContent
-        }
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
 
         {/* PLAYERS */}
         <View style={styles.playersContainer}>
 
-          <Text
-            style={[
-              styles.playersTitle,
-              {
-                fontSize:
-                  textSize
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .players
-            }
+          <Text style={[styles.playersTitle,{fontSize:textSize}]}>
+            {texts[language].players}
           </Text>
 
-          {activePlayers.map(
-            (player) => (
+          {activePlayers.map((player) => (
 
-              <Text
-                key={player.uid}
-                style={[
-                  styles.playerName,
-                  {
-                    fontSize:
-                      textSize - 2
-                  },
-                  player.uid === currentUid &&
-                    styles.currentPlayer
-                ]}
-              >
+              <Text key={player.uid} style={[styles.playerName,{fontSize:textSize - 2},player.uid === currentUid && styles.currentPlayer]}>
 
                 {player.username}
 
-                {player.uid === currentUid
-                  ? ` ${texts[language].you}`
-                  : ""}
+                {player.uid === currentUid ? ` ${texts[language].you}` : ""}
 
               </Text>
             )
@@ -767,45 +398,15 @@ export default function WhoAmI({
         {/* CHARACTER */}
         {myCharacter && (
 
-          <View
-            style={styles.myCharacterBox}
-          >
+          <View style={styles.myCharacterBox}>
 
-            <Text
-              style={[
-                styles.myCharacterTitle,
-                {
-                  fontSize:
-                    textSize
-                }
-              ]}
-            >
-              {
-                texts[language]
-                  .yourCharacter
-              }
+            <Text style={[styles.myCharacterTitle,{fontSize:textSize}]}>
+              {texts[language].yourCharacter}
             </Text>
 
-            <Image
-              source={
-                characterImages[
-                  myCharacter.name
-                ]
-              }
-              style={
-                styles.myCharacterImage
-              }
-            />
+            <Image source={characterImages[myCharacter.name]} style={styles.myCharacterImage}/>
 
-            <Text
-              style={[
-                styles.myCharacterName,
-                {
-                  fontSize:
-                    textSize - 1
-                }
-              ]}
-            >
+            <Text style={[styles.myCharacterName,{fontSize:textSize - 1}]}>
               {myCharacter.name}
             </Text>
 
@@ -815,44 +416,15 @@ export default function WhoAmI({
         {/* GRID */}
         <View style={styles.grid}>
 
-          {characters.map(
-            (char, index) => (
+          {characters.map((char,index) => (
 
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.card,
-                  discarded.includes(
-                    char.name
-                  ) &&
-                    styles.discardedCard
-                ]}
-                onPress={() =>
-                  handleSelect(char)
-                }
-              >
+              <TouchableOpacity key={index} style={[styles.card,discarded.includes(char.name) && styles.discardedCard]}
+                onPress={() => handleSelect(char)}>
 
-                <Image
-                  source={
-                    characterImages[
-                      char.name
-                    ] ||
-                    require('../Imagenes/who.png')
-                  }
-                  style={
-                    styles.imagePlaceholder
-                  }
-                />
+                <Image source={characterImages[char.name] || require('../Imagenes/who.png')}
+                  style={styles.imagePlaceholder}/>
 
-                <Text
-                  style={[
-                    styles.cardText,
-                    {
-                      fontSize:
-                        textSize - 3
-                    }
-                  ]}
-                >
+                <Text style={[styles.cardText,{fontSize:textSize - 3}]}>
                   {char.name}
                 </Text>
 
@@ -863,31 +435,12 @@ export default function WhoAmI({
         </View>
 
         {/* BUTTON */}
-        <TouchableOpacity
-          style={[
-            styles.guessButton,
-            gameState?.isGuessing &&
-              { opacity: 0.5 }
-          ]}
+        <TouchableOpacity style={[styles.guessButton,gameState?.isGuessing && { opacity: 0.5 }]}
           onPress={handleGuess}
-          disabled={
-            gameState?.isGuessing
-          }
-        >
+          disabled={gameState?.isGuessing}>
 
-          <Text
-            style={[
-              styles.guessText,
-              {
-                fontSize:
-                  textSize + 1
-              }
-            ]}
-          >
-            {
-              texts[language]
-                .guess
-            }
+          <Text style={[styles.guessText,{fontSize:textSize + 1}]}>
+            {texts[language].guess}
           </Text>
 
         </TouchableOpacity>
