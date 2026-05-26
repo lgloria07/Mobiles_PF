@@ -1,55 +1,20 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useContext
-} from 'react';
+import React, {useState,useEffect,useRef,useContext} from 'react';
+import {View,Text,TouchableOpacity,StyleSheet} from 'react-native';
 
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet
-} from 'react-native';
+// Taboo tambien cuenta con su propio helpers para seleccionar palabras dependiendo del idioma
+import {getRandomCard} from '../utils/tabooHelpers';
 
-import {
-  getRandomCard
-} from '../utils/tabooHelpers';
+import {doc,updateDoc} from 'firebase/firestore';
+import {db} from '../services/firebase';
 
-import {
-  doc,
-  updateDoc
-} from 'firebase/firestore';
+import {SettingsContext} from '../services/SettingsContext';
 
-import {
-  db
-} from '../services/firebase';
-
-import {
-  SettingsContext
-} from '../services/SettingsContext';
-
-export default function Taboo({
-  navigation,
-  route
-}) {
+export default function Taboo({navigation,route}) {
 
   const { code } = route.params;
 
-  // SETTINGS
-  const settings =
-    useContext(SettingsContext);
+  const {language,textSize,titleSize} = useContext(SettingsContext);
 
-  const language =
-    settings?.language || 'English';
-
-  const textSize =
-    settings?.textSize || 20;
-
-  const titleSize =
-    settings?.titleSize || 40;
-
-  // TRANSLATIONS
   const texts = {
 
     English: {
@@ -141,151 +106,88 @@ export default function Taboo({
     }
   };
 
-  const t =
-    texts[language] ||
-    texts.English;
+  const t = texts[language];
 
-  // TIMER
-  const [timer, setTimer] =
-    useState(60);
+  const [timer, setTimer] = useState(60);
 
-  // GAME STATES
-  const [started, setStarted] =
-    useState(false);
+  const [started, setStarted] = useState(false);
+  const [showScoreboard, setShowScoreboard] = useState(false);
+  const [gameFinished, setGameFinished] = useState(false);
+  const [setupFinished, setSetupFinished] = useState(false);
 
-  const [showScoreboard, setShowScoreboard] =
-    useState(false);
+  const [selectedRounds, setSelectedRounds] = useState(1);
+  const [currentRound, setCurrentRound] = useState(1);
 
-  const [gameFinished, setGameFinished] =
-    useState(false);
+  const [currentTeam, setCurrentTeam] = useState(1);
+  const [team1Score, setTeam1Score] = useState(0);
+  const [team2Score, setTeam2Score] = useState(0);
 
-  const [setupFinished, setSetupFinished] =
-    useState(false);
+  const [word, setWord] = useState('');
 
-  // ROUNDS
-  const [selectedRounds, setSelectedRounds] =
-    useState(1);
+  const [forbidden, setForbidden] = useState([]);
 
-  const [currentRound, setCurrentRound] =
-    useState(1);
+  const [usedWords, setUsedWords] = useState([]);
 
-  // TEAMS
-  const [currentTeam, setCurrentTeam] =
-    useState(1);
+  const intervalRef = useRef(null);
 
-  const [team1Score, setTeam1Score] =
-    useState(0);
-
-  const [team2Score, setTeam2Score] =
-    useState(0);
-
-  // WORDS
-  const [word, setWord] =
-    useState('');
-
-  const [forbidden, setForbidden] =
-    useState([]);
-
-  const [usedWords, setUsedWords] =
-    useState([]);
-
-  const intervalRef =
-    useRef(null);
-
-  // CLEANUP
+  // Evitamos que el timer continue si ya se salio de la pantalla
   useEffect(() => {
-
     return () => {
-
       if (intervalRef.current) {
-
-        clearInterval(
-          intervalRef.current
-        );
+        clearInterval(intervalRef.current);
       }
     };
-
   }, []);
 
-  // TIMER
   const startTimer = () => {
 
-    clearInterval(
-      intervalRef.current
-    );
+    clearInterval(intervalRef.current);
 
-    intervalRef.current =
-      setInterval(() => {
+    intervalRef.current = setInterval(() => {
 
-        setTimer(prev => {
+      setTimer(prev => {
 
-          if (prev <= 1) {
+        if (prev <= 1) {
 
-            clearInterval(
-              intervalRef.current
-            );
+          clearInterval(intervalRef.current);
 
-            finishTurn();
+          finishTurn();
 
-            return 0;
-          }
+          return 0;
+        }
 
-          return prev - 1;
+        return prev - 1;
 
-        });
+      });
 
-      }, 1000);
+    }, 1000);
   };
 
-  // GENERATE CARD
-  const generateCard = (
-    currentUsedWords
-  ) => {
+  const generateCard = (currentUsedWords) => {
 
-    const card =
-      getRandomCard(
-        currentUsedWords,
-        language
-      );
+    const card = getRandomCard(currentUsedWords,language);
 
     if (!card) return;
 
-    setWord(
-      card.word
-    );
+    setWord(card.word);
 
-    setForbidden(
-      card.forbidden
-    );
+    setForbidden(card.forbidden);
 
-    setUsedWords(prev => [
-      ...prev,
-      card.word
-    ]);
+    setUsedWords(prev => [...prev,card.word]);
   };
 
-  // PREPARE TURN
+  // Preparamos el turno: seleccionamos carta, reiniciamos timer y usadas
   const prepareTurn = () => {
 
-    const firstCard =
-      getRandomCard(
-        [],
-        language
-      );
+    const firstCard = getRandomCard([],language);
 
     if (!firstCard) return;
 
-    setWord(
-      firstCard.word
-    );
+    setWord(firstCard.word);
 
-    setForbidden(
-      firstCard.forbidden
-    );
+    setForbidden(firstCard.forbidden);
 
-    setUsedWords([
-      firstCard.word
-    ]);
+    setUsedWords([firstCard.word]);
 
     setTimer(60);
 
@@ -294,23 +196,16 @@ export default function Taboo({
     setSetupFinished(true);
   };
 
-  // START TURN
   const startTurn = () => {
-
     setStarted(true);
-
     startTimer();
   };
 
-  // FINISH TURN
   const finishTurn = () => {
-
     setStarted(false);
-
     setShowScoreboard(true);
   };
 
-  // NEXT TURN
   const nextTurn = () => {
 
     setShowScoreboard(false);
@@ -338,46 +233,29 @@ export default function Taboo({
     prepareTurn();
   };
 
-  // RESET GAME
   const resetGame = () => {
 
     setGameFinished(false);
-
     setSetupFinished(false);
-
     setStarted(false);
-
     setShowScoreboard(false);
-
     setCurrentRound(1);
-
     setCurrentTeam(1);
-
     setTeam1Score(0);
-
     setTeam2Score(0);
-
     setWord('');
-
     setForbidden([]);
-
     setUsedWords([]);
-
     setTimer(60);
   };
 
-  // EXIT GAME
   const exitGame = async () => {
 
-    clearInterval(
-      intervalRef.current
-    );
+    clearInterval(intervalRef.current);
 
     try {
 
-      await updateDoc(
-        doc(db, 'parties', code),
-        {
+      await updateDoc(doc(db, 'parties', code),{
           status: 'waiting',
           game: null,
           gameState: null
@@ -386,70 +264,45 @@ export default function Taboo({
 
     } catch (error) {
 
-      console.log(
-        'Error exiting taboo:',
-        error
-      );
+      console.log('Error exiting taboo:',error);
     }
 
     resetGame();
 
-    navigation.replace(
-      'gameSelection',
-      { code }
-    );
+    navigation.replace('gameSelection',{ code });
   };
 
-  // CORRECT
+  // Sumar puntuacion y cambiar carta
   const correct = () => {
 
     if (timer <= 0) return;
 
     if (currentTeam === 1) {
-
       setTeam1Score(prev => prev + 1);
-
     } else {
-
       setTeam2Score(prev => prev + 1);
     }
 
-    generateCard(
-      usedWords
-    );
+    generateCard(usedWords);
   };
 
-  // SKIP
   const skip = () => {
 
     if (timer <= 0) return;
 
-    generateCard(
-      usedWords
-    );
+    generateCard(usedWords);
   };
 
-  // INITIAL SCREEN
   if (!setupFinished) {
 
     return (
       <View style={styles.container}>
 
-        <Text
-          style={[
-            styles.title,
-            { fontSize: titleSize + 8 }
-          ]}
-        >
+        <Text style={[styles.title,{ fontSize: titleSize + 8 }]}>
           {t.title}
         </Text>
 
-        <Text
-          style={[
-            styles.roundText,
-            { fontSize: textSize + 6 }
-          ]}
-        >
+        <Text style={[styles.roundText,{ fontSize: textSize + 6 }]}>
           {t.howManyRounds}
         </Text>
 
@@ -457,30 +310,10 @@ export default function Taboo({
 
           {[1, 2, 3, 5].map(num => (
 
-            <TouchableOpacity
-              key={num}
-              style={[
-                styles.roundOption,
-                selectedRounds === num && {
-                  backgroundColor: 'white'
-                }
-              ]}
-              onPress={() =>
-                setSelectedRounds(num)
-              }
-            >
+            <TouchableOpacity key={num} style={[styles.roundOption,selectedRounds === num && {backgroundColor: 'white'}]}
+              onPress={() => setSelectedRounds(num)}>
 
-              <Text
-                style={[
-                  styles.roundOptionText,
-                  {
-                    fontSize: textSize + 2
-                  },
-                  selectedRounds === num && {
-                    color: '#14213b'
-                  }
-                ]}
-              >
+              <Text style={[styles.roundOptionText,{fontSize: textSize + 2},selectedRounds === num && {color: '#14213b'}]}>
                 {num}
               </Text>
 
@@ -489,17 +322,9 @@ export default function Taboo({
 
         </View>
 
-        <TouchableOpacity
-          style={styles.readyButton}
-          onPress={prepareTurn}
-        >
+        <TouchableOpacity style={styles.readyButton} onPress={prepareTurn}>
 
-          <Text
-            style={[
-              styles.readyText,
-              { fontSize: textSize + 10 }
-            ]}
-          >
+          <Text style={[styles.readyText,{ fontSize: textSize + 10 }]}>
             {t.startGame}
           </Text>
 
@@ -509,34 +334,19 @@ export default function Taboo({
     );
   }
 
-  // FINISHED SCREEN
   if (gameFinished) {
 
-    const winner =
-      team1Score > team2Score
-        ? t.team1Wins
-        : team2Score > team1Score
-        ? t.team2Wins
-        : t.draw;
+    const winner = team1Score > team2Score ? t.team1Wins
+        : team2Score > team1Score ? t.team2Wins : t.draw;
 
     return (
       <View style={styles.container}>
 
-        <Text
-          style={[
-            styles.title,
-            { fontSize: titleSize + 6 }
-          ]}
-        >
+        <Text style={[styles.title,{ fontSize: titleSize + 6 }]}>
           {t.gameOver}
         </Text>
 
-        <Text
-          style={[
-            styles.winner,
-            { fontSize: textSize + 14 }
-          ]}
-        >
+        <Text style={[styles.winner,{ fontSize: textSize + 14 }]}>
           {winner}
         </Text>
 
@@ -544,21 +354,11 @@ export default function Taboo({
 
           <View style={styles.blueTeam}>
 
-            <Text
-              style={[
-                styles.teamText,
-                { fontSize: textSize + 2 }
-              ]}
-            >
+            <Text style={[styles.teamText,{ fontSize: textSize + 2 }]}>
               {t.team} 1
             </Text>
 
-            <Text
-              style={[
-                styles.scoreText,
-                { fontSize: titleSize }
-              ]}
-            >
+            <Text style={[styles.scoreText,{ fontSize: titleSize }]}>
               {team1Score}
             </Text>
 
@@ -566,21 +366,11 @@ export default function Taboo({
 
           <View style={styles.redTeam}>
 
-            <Text
-              style={[
-                styles.teamText,
-                { fontSize: textSize + 2 }
-              ]}
-            >
+            <Text style={[styles.teamText,{ fontSize: textSize + 2 }]}>
               {t.team} 2
             </Text>
 
-            <Text
-              style={[
-                styles.scoreText,
-                { fontSize: titleSize }
-              ]}
-            >
+            <Text style={[styles.scoreText,{ fontSize: titleSize }]}>
               {team2Score}
             </Text>
 
@@ -588,36 +378,17 @@ export default function Taboo({
 
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.readyButton,
-            { marginTop: 30 }
-          ]}
-          onPress={resetGame}
-        >
+        <TouchableOpacity style={[styles.readyButton,{ marginTop: 30 }]} onPress={resetGame}>
 
-          <Text
-            style={[
-              styles.readyText,
-              { fontSize: textSize + 8 }
-            ]}
-          >
+          <Text style={[styles.readyText,{ fontSize: textSize + 8 }]}>
             {t.playAgain}
           </Text>
 
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.exitButton}
-          onPress={exitGame}
-        >
+        <TouchableOpacity style={styles.exitButton} onPress={exitGame}>
 
-          <Text
-            style={[
-              styles.exitText,
-              { fontSize: textSize + 8 }
-            ]}
-          >
+          <Text style={[styles.exitText,{ fontSize: textSize + 8 }]}>
             {t.exit}
           </Text>
 
@@ -627,27 +398,16 @@ export default function Taboo({
     );
   }
 
-  // SCOREBOARD
   if (showScoreboard) {
 
     return (
       <View style={styles.container}>
 
-        <Text
-          style={[
-            styles.title,
-            { fontSize: titleSize }
-          ]}
-        >
+        <Text style={[styles.title,{ fontSize: titleSize }]}>
           {t.roundSummary}
         </Text>
 
-        <Text
-          style={[
-            styles.roundText,
-            { fontSize: textSize + 4 }
-          ]}
-        >
+        <Text style={[styles.roundText,{ fontSize: textSize + 4 }]}>
           {t.round} {currentRound}
         </Text>
 
@@ -655,21 +415,11 @@ export default function Taboo({
 
           <View style={styles.blueTeam}>
 
-            <Text
-              style={[
-                styles.teamText,
-                { fontSize: textSize + 2 }
-              ]}
-            >
+            <Text style={[styles.teamText,{ fontSize: textSize + 2 }]}>
               {t.team} 1
             </Text>
 
-            <Text
-              style={[
-                styles.scoreText,
-                { fontSize: titleSize }
-              ]}
-            >
+            <Text style={[styles.scoreText,{ fontSize: titleSize }]}>
               {team1Score}
             </Text>
 
@@ -677,21 +427,11 @@ export default function Taboo({
 
           <View style={styles.redTeam}>
 
-            <Text
-              style={[
-                styles.teamText,
-                { fontSize: textSize + 2 }
-              ]}
-            >
+            <Text style={[styles.teamText,{ fontSize: textSize + 2 }]}>
               {t.team} 2
             </Text>
 
-            <Text
-              style={[
-                styles.scoreText,
-                { fontSize: titleSize }
-              ]}
-            >
+            <Text style={[styles.scoreText,{ fontSize: titleSize }]}>
               {team2Score}
             </Text>
 
@@ -699,32 +439,16 @@ export default function Taboo({
 
         </View>
 
-        <Text
-          style={[
-            styles.nextTeamText,
-            { fontSize: textSize + 6 }
-          ]}
-        >
+        <Text style={[ styles.nextTeamText,{ fontSize: textSize + 6 }]}>
           {
-            currentTeam === 1
-              ? t.nextTeam2
-              : currentRound >= selectedRounds
-              ? t.finalResults
-              : t.nextTeam1
+            currentTeam === 1 ? t.nextTeam2:
+            currentRound >= selectedRounds ? t.finalResults : t.nextTeam1
           }
         </Text>
 
-        <TouchableOpacity
-          style={styles.readyButton}
-          onPress={nextTurn}
-        >
+        <TouchableOpacity style={styles.readyButton} onPress={nextTurn}>
 
-          <Text
-            style={[
-              styles.readyText,
-              { fontSize: textSize + 8 }
-            ]}
-          >
+          <Text style={[styles.readyText,{ fontSize: textSize + 8 }]}>
             {t.continue}
           </Text>
 
@@ -734,50 +458,26 @@ export default function Taboo({
     );
   }
 
-  // READY SCREEN
   if (!started) {
 
     return (
       <View style={styles.container}>
 
-        <Text
-          style={[
-            styles.roundText,
-            { fontSize: textSize + 6 }
-          ]}
-        >
+        <Text style={[styles.roundText,{ fontSize: textSize + 6 }]}>
           {t.round} {currentRound} / {selectedRounds}
         </Text>
 
-        <Text
-          style={[
-            styles.teamTurn,
-            { fontSize: titleSize - 4 }
-          ]}
-        >
+        <Text style={[styles.teamTurn,{ fontSize: titleSize - 4 }]}>
           {t.team} {currentTeam}
         </Text>
 
-        <Text
-          style={[
-            styles.passText,
-            { fontSize: textSize + 2 }
-          ]}
-        >
+        <Text style={[styles.passText,{ fontSize: textSize + 2 }]}>
           {t.passPhone}
         </Text>
 
-        <TouchableOpacity
-          style={styles.readyButton}
-          onPress={startTurn}
-        >
+        <TouchableOpacity style={styles.readyButton} onPress={startTurn}>
 
-          <Text
-            style={[
-              styles.readyText,
-              { fontSize: textSize + 8 }
-            ]}
-          >
+          <Text style={[styles.readyText,{ fontSize: textSize + 8 }]}>
             {t.ready}
           </Text>
 
@@ -787,89 +487,49 @@ export default function Taboo({
     );
   }
 
-  // PLAY SCREEN
   return (
+
     <View style={styles.container}>
 
-      <Text
-        style={[
-          styles.teamTurn,
-          { fontSize: titleSize - 4 }
-        ]}
-      >
+      <Text style={[styles.teamTurn,{ fontSize: titleSize - 4 }]}>
         {t.team} {currentTeam}
       </Text>
 
-      <Text
-        style={[
-          styles.timer,
-          { fontSize: titleSize + 20 }
-        ]}
-      >
+      <Text style={[styles.timer,{ fontSize: titleSize + 20 }]}>
         {timer}
       </Text>
 
       <View style={styles.wordCard}>
 
-        <Text
-          style={[
-            styles.word,
-            { fontSize: titleSize - 2 }
-          ]}
-        >
+        <Text style={[styles.word,{ fontSize: titleSize - 2 }]}>
           {word}
         </Text>
 
-        <Text
-          style={[
-            styles.tabooTitle,
-            { fontSize: textSize + 2 }
-          ]}
-        >
+        <Text style={[styles.tabooTitle,{ fontSize: textSize + 2 }]}>
           {t.forbiddenWords}
         </Text>
 
-        {forbidden.map(
-          (item, index) => (
+        {forbidden.map((item,index) => (
 
-            <Text
-              key={index}
-              style={[
-                styles.forbidden,
-                {
-                  fontSize: textSize + 2
-                }
-              ]}
-            >
-              {item}
-            </Text>
-          )
-        )}
+          <Text key={index} style={[styles.forbidden,{fontSize: textSize + 2}]}>
+            {item}
+          </Text>
+        ))}
 
       </View>
 
       <View style={styles.buttons}>
 
-        <TouchableOpacity
-          style={styles.skip}
-          onPress={skip}
-        >
-
-          <Text style={styles.buttonEmoji}>
-            ❌
+        <TouchableOpacity style={styles.skip} onPress={skip}>
+          <Text style={[styles.buttonEmoji, {color: '#631010'}]}>
+            X
           </Text>
-
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.correct}
-          onPress={correct}
-        >
-
-          <Text style={styles.buttonEmoji}>
-            ✔️
+        <TouchableOpacity style={styles.correct} onPress={correct}>
+          <Text style={[styles.buttonEmoji, {color: '#065625'}]}>
+            ✓
           </Text>
-
         </TouchableOpacity>
 
       </View>
