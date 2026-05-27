@@ -2,8 +2,8 @@ import {useState, useContext } from 'react';
 import {StyleSheet,Text,View,Image,TextInput,TouchableOpacity} from 'react-native';
 
 /* Conexion con firebase */
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../services/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth'; 
+import { auth } from '../services/firebase'; 
 
 /* Para el icono de settings */
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +17,7 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [mensaje, setMensaje] = useState('');
 
-  const {language,textSize,titleSize} = useContext(SettingsContext); //EXPLICAME
+  const {language,textSize,titleSize} = useContext(SettingsContext); 
 
   /* Traducciones */
   const texts = {

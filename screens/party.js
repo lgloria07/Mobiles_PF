@@ -97,7 +97,7 @@ export default function PartyScreen({ navigation }) {
     }
   };
 
-  const leaveParty = async () => {
+  const leaveParty = async () => { 
 
     try {
       const user = auth.currentUser;
