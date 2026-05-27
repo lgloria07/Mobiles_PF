@@ -199,22 +199,32 @@ export default function TowerOfNerds({navigation,route}) {
 
   }, [gameState, isHost]);
 
-  // Navegar a selección de juego después de finalizar
+  // Si el juego se reinicia, el host vuelve a la selección de juego y los demás jugadores a la sala de espera
+  useEffect(() => {
+    if (!gameState) {
+      setHasNavigated(false);
+    }
+  }, [gameState]);
+
+  // Si el juego terminó, navegamos a la selección de juego después de unos segundos
   useEffect(() => {
 
-    if ( gameState?.finished && gameState?.winner && !hasNavigated) {
+    if (!isFocused) return;
+
+    if (gameState?.finished && gameState?.winner && !hasNavigated) {
 
       setHasNavigated(true);
 
       const timeout = setTimeout(() => {
-          navigation.replace('gameSelection', { code });
-        }, 3000);
 
-      return () =>
-        clearTimeout(timeout);
+        navigation.replace('gameSelection', { code });
+
+      }, 3000);
+
+      return () => clearTimeout(timeout);
     }
 
-  }, [gameState]);
+  }, [gameState, hasNavigated, isFocused, navigation, code]);
 
   return (
 
